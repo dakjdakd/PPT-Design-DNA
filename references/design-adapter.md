@@ -60,6 +60,15 @@ Use scenario target ranges to compare against the active profile. These are revi
     "whitespace": [40, 65],
     "motion_intensity": [5, 25]
   },
+  "business_report": {
+    "information_density": [55, 80],
+    "chart_weight": [60, 85],
+    "business": [70, 95],
+    "grid_strictness": [65, 90],
+    "text_density": [50, 75],
+    "whitespace": [35, 65],
+    "motion_intensity": [5, 25]
+  },
   "investor_pitch": {
     "information_density": [35, 60],
     "chart_weight": [45, 75],
@@ -74,6 +83,33 @@ Use scenario target ranges to compare against the active profile. These are revi
     "whitespace": [60, 90],
     "motion_intensity": [35, 70]
   },
+  "teaching_courseware": {
+    "information_density": [40, 70],
+    "chart_weight": [35, 70],
+    "formula_friendliness": [35, 75],
+    "text_density": [35, 65],
+    "hierarchy_strength": [70, 95],
+    "trustworthy": [55, 85],
+    "motion_intensity": [10, 35]
+  },
+  "sales_proposal": {
+    "information_density": [35, 65],
+    "chart_weight": [35, 70],
+    "image_weight": [45, 80],
+    "business": [70, 95],
+    "trustworthy": [65, 95],
+    "title_weight": [65, 90],
+    "motion_intensity": [20, 50]
+  },
+  "portfolio_showcase": {
+    "information_density": [20, 50],
+    "image_weight": [65, 95],
+    "title_weight": [65, 95],
+    "editorial": [45, 85],
+    "premium": [45, 90],
+    "whitespace": [50, 85],
+    "motion_intensity": [25, 60]
+  },
   "consulting_report": {
     "information_density": [55, 80],
     "chart_weight": [65, 90],
@@ -83,6 +119,8 @@ Use scenario target ranges to compare against the active profile. These are revi
   }
 }
 ```
+
+If a scenario includes a target parameter that the active profile does not explicitly store, infer it from the closest semantic tags or execution DNA and label that comparison as an inference. Do not invent precision.
 
 ## Conflict Detection
 
@@ -194,6 +232,24 @@ design-profiles/
 Adapter versions are immutable. If the user tunes an adapter, create a new adapter version.
 
 ## Adapter Diff
+
+Adapter Diff must use the same JSON shape as profile Design Diff with `diff_type: "adapter_version"` and `adapter_id` filled. Markdown is optional.
+
+Required adapter diff fields:
+
+- `diff_id`
+- `diff_type: "adapter_version"`
+- `profile_id`
+- `adapter_id`
+- `from_version`
+- `to_version`
+- `created_at`
+- `change_reason`
+- `parameter_changes`
+- `visual_consequences`
+- `scenario_consequences`
+- `risks`
+- `recommendation`
 
 Adapter Diff must explain visual consequences:
 

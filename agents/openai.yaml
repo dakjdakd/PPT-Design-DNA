@@ -2,7 +2,7 @@ interface:
   display_name: "PPT Design DNA"
   short_description: "Adapt Design DNA into animated HTML decks"
   brand_color: "#111827"
-  default_prompt: "Use $PPT-Design-DNA to create or reuse a versioned Design DNA profile, then collect PPT requirements with numbered A/B/C/D option panels instead of blank fields, handle content images through Image Asset Strategy, adapt it to my scenario, plan a blueprint, and generate a fixed-stage animated HTML deck with no fake image placeholders, readable text/surface pairs, and safe layering."
+  default_prompt: "Use $PPT-Design-DNA to find or create a minimal reproducible Design DNA profile, reuse saved profiles/adapters when available, collect PPT requirements with numbered A/B/C/D option panels, adapt the style to my scenario, and generate a fixed-stage animated HTML deck under the hard output contract with no bulky default artifacts, fake image placeholders, unreadable text, or unsafe layering."
 
 policy:
   allow_implicit_invocation: true

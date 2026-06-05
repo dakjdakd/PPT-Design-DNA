@@ -14,7 +14,7 @@ Current version: **V3 - Design Adapter and Discovery**.
 V3 includes:
 
 - V1: image-to-Design-DNA, parameter panel, HTML-first deck generation
-- V2: reusable profile library, profile details, version history, Design Diff, Design Prompt export, usage records
+- V2: reusable profile library, profile details, version history, Design Diff, optional Design Prompt export, and compact usage pointers
 - V3: Design Adapter scenario variants, stronger conflict detection, visual-director advice, no-image Design Discovery, Image Asset Strategy, and stronger pre-generation visual safety constraints
 
 ## Core Chain
@@ -22,7 +22,8 @@ V3 includes:
 Use this strict chain:
 
 ```text
-Design source: reference images, saved profile, or no-image Design Discovery
+Profile library check: targeted read of canonical Design Profile index when relevant
+-> Design source: saved profile/adapter, reference images, or no-image Design Discovery
 -> Design DNA
 -> mandatory Design DNA parameter panel
 -> user tuning
@@ -45,6 +46,7 @@ The main reusable asset is the **Design DNA Profile**. Scenario-specific adapter
 
 When the user wants to create or discuss a PPT-Design-DNA deck, first identify the current mode:
 
+- **Reuse saved design**: user mentions saved designs, previous Design DNA, a profile name, "my designs", "use that style", or the workspace contains the canonical `design-profiles/profile-index.json`.
 - **Create from images**: user explicitly uploaded or pointed to reference images/screenshots.
 - **Reuse profile**: user selected a saved Design Profile or adapter.
 - **Manage profiles**: user wants to list, inspect, compare, export, or reuse profiles.
@@ -57,6 +59,13 @@ V3 can create Design DNA in three ways only:
 1. extract from explicit user-provided reference images
 2. reuse an explicit saved Design Profile or adapter
 3. run no-image Design Discovery and show candidate DNA directions
+
+Before asking for images, perform a **targeted profile-library check** when reuse is plausible:
+
+- If `design-profiles/profile-index.json` exists in the current project root, read only that index and offer the matching saved profiles/adapters as a design source.
+- If the user names a profile, read its `profile.json` and current version snapshot.
+- Do not recursively browse for profiles, images, decks, or random JSON files.
+- Do not treat old conversation images as reusable design sources unless the user explicitly names them.
 
 Do not create a deck directly from vague text. If the user has no reference images and no saved profile, enter Design Discovery first. Do not browse the workspace for images, infer images from the current directory, or reuse previous-turn images unless the user explicitly names them for this deck.
 
@@ -115,7 +124,8 @@ For profile-management requests, do not ask for reference images, deck topic, au
    - Tuning a saved profile creates a new immutable version.
 
 5. **Save Design Profile**
-   - Save profile name, source/discovery summary, parameter values, tokens, negative constraints, derived design prompt, metadata, versions, and usage.
+   - Save the minimal reproducible Design Profile: profile identity, source/discovery summary, current version pointer, Design DNA snapshot, design tokens, negative constraints, and derived prompt.
+   - Do not save bulky management artifacts by default. Usage history, prompt exports, source image copies, and human-readable reports are optional.
    - Design Prompt is a derived export, not the source of truth.
    - See [Profile Management](references/profile-management.md).
 
@@ -164,6 +174,7 @@ For profile-management requests, do not ask for reference images, deck topic, au
 
 12. **HTML Deck Generation**
     - Generate a single-file or folder-based HTML deck as the primary artifact.
+    - Save deck artifacts using the hard output contract in [Output Contract](references/output-contract.md).
     - Use a fixed 1920x1080 internal stage scaled uniformly to the viewport.
     - Enforce design tokens, density gates, layout archetypes, safe margins, and minimum font sizes.
     - Enforce visual safety: no generic empty image slots, no unreadable text/surface pairs, no decorative layers covering content, and no unreserved navigation overlap.
@@ -311,6 +322,8 @@ Core rules:
 
 ## Output Rules
 
+Use [Output Contract](references/output-contract.md) for hard directory rules and minimal-retention rules.
+
 When producing a deck, provide:
 
 - final HTML deck path
@@ -321,7 +334,7 @@ When producing a deck, provide:
 - optional PDF/PPTX export path only if requested
 - unresolved limitations or manual edits, if any
 
-Do not clutter the final response with internal artifact lists. `design-contract.json`, `ppt-blueprint.json`, and `page-specs.json` are internal project specs unless the user asks to inspect or manage them.
+Do not clutter the final response with internal artifact lists. `design-contract`, `ppt-blueprint`, and `page-specs` are required planning steps, but they are transient by default. Persist them only when the user asks to inspect, edit, audit, or regenerate from specs.
 
 When managing profiles, provide only the requested profile/library information: list, detail, diff, adapter, export path, or usage history. Do not generate a deck unless explicitly requested.
 
@@ -334,6 +347,7 @@ When only discussing the skill design, do not generate PPT files unless the user
 - Do not skip the Design DNA parameter panel.
 - Do not ask PPT task questions before the user accepts or tunes Design DNA.
 - Do not overwrite a saved profile version; create a new version and Design Diff.
+- Do not save generated user decks, profiles, or outputs inside the skill source/installation directory. Use the current user project root and the hard output contract.
 - Do not treat Design Prompt as source of truth; it is derived from Design DNA.
 - Do not treat Design Adapter as source of truth; it is a derived scenario variant.
 - Do not skip Page Specs for real deck generation.

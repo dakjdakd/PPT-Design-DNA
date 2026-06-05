@@ -45,10 +45,6 @@ design-profiles/
     diffs/
       v001-to-v002.json
       v001-to-v002.md
-    exports/
-      design-prompt.md
-      design-tokens.json
-    usage-log.json
 ```
 
 Logical separation:
@@ -57,9 +53,10 @@ Logical separation:
 - `profile.json`: current profile pointer and stable identity
 - `versions/*.json`: immutable Design DNA snapshots
 - `adapters/*`: scenario-specific variants derived from a profile/version
-- `diffs/*`: human-readable and machine-readable version changes
-- `exports/*`: derived outputs, not source of truth
-- `usage-log.json`: decks/projects that used this profile or adapter
+- `diffs/*.json`: required machine-readable version changes
+- `diffs/*.md`: optional human-readable version changes, only when the user asks
+
+Do not create `exports/`, `usage-log.json`, copied reference images, thumbnails, or long reports by default. See [Output Contract](output-contract.md) for required vs optional assets.
 
 ## Profile Index
 
@@ -76,6 +73,7 @@ Each entry in `profile-index.json` should include enough metadata to list profil
       "created_at": "2026-06-05T21:40:00+08:00",
       "updated_at": "2026-06-05T22:10:00+08:00",
       "last_used_at": "2026-06-05T22:30:00+08:00",
+      "last_output_path": "outputs/math-modeling-defense/index.html",
       "source_summary": ["Cyberpunk 2077 screenshot", "Notion homepage"],
       "primary_moods": ["minimal", "tech", "editorial"],
       "best_for": ["product launch", "tech portfolio", "creative pitch"],
@@ -113,7 +111,7 @@ When the user opens a profile, show:
 - dynamic semantic tags
 - plain-language design summary
 - available versions
-- recent usage
+- compact recent usage if present
 
 ## Version Rules
 
@@ -161,6 +159,65 @@ Version snapshots should include:
 ## Design Diff
 
 Design Diff must explain design consequences, not only numeric changes.
+
+The required persisted file is JSON. Markdown Diff is optional and should be created only when the user asks for a readable export.
+
+Required JSON shape:
+
+```json
+{
+  "diff_id": "v001-to-v002",
+  "diff_type": "profile_version",
+  "profile_id": "cyber-minimal-editorial",
+  "adapter_id": null,
+  "from_version": "v001",
+  "to_version": "v002",
+  "created_at": "2026-06-05T22:10:00+08:00",
+  "change_reason": "reduced cyber intensity and increased whitespace",
+  "parameter_changes": [
+    {
+      "path": "user_dna.semantic_tags.cyber",
+      "label": "Cyber",
+      "from": 80,
+      "to": 30
+    }
+  ],
+  "visual_consequences": [
+    {
+      "change_ref": "user_dna.semantic_tags.cyber",
+      "impact": "Neon saturation and glow edges decrease while the dark tech atmosphere remains.",
+      "confidence": "direct"
+    }
+  ],
+  "scenario_consequences": [
+    {
+      "scenario": "speech",
+      "impact": "The deck becomes calmer and easier to present live.",
+      "confidence": "inferred"
+    }
+  ],
+  "risks": [
+    "The profile may become less distinctive for cyberpunk-themed launches."
+  ],
+  "recommendation": "Use v002 for calmer product or portfolio decks; keep v001 for high-energy visual openings."
+}
+```
+
+Required fields:
+
+- `diff_id`
+- `diff_type`: `profile_version` or `adapter_version`
+- `profile_id`
+- `from_version`
+- `to_version`
+- `created_at`
+- `change_reason`
+- `parameter_changes`
+- `visual_consequences`
+- `risks`
+- `recommendation`
+
+Use `adapter_id` when the diff is for an adapter. Use `scenario_consequences` when the change affects scenario fit.
 
 ```text
 V1 -> V2
@@ -236,6 +293,8 @@ Export formats:
 - `design-tokens.json`
 - optional short prompt block for other tools
 
+Prompt export is optional. Do not create export files unless the user asks to export or share the profile with another tool.
+
 `design-prompt.md` should include:
 
 - profile or adapter name and version
@@ -255,7 +314,14 @@ Do not edit the exported prompt as if it were the source profile. To change the 
 
 ## Usage Log
 
-Record when a profile or adapter is used to create a deck.
+Usage history is optional and not required to reproduce a Design Profile.
+
+By default, update compact usage pointers only:
+
+- `last_used_at`
+- `last_output_path`
+
+Create `usage-log.json` only when the user asks for detailed history or when a project needs auditability.
 
 ```json
 {
@@ -274,7 +340,7 @@ Record when a profile or adapter is used to create a deck.
 }
 ```
 
-When finalizing a deck, append a usage entry if a Design Profile or adapter was used.
+When finalizing a deck, update compact usage pointers if a Design Profile or adapter was used. Append a detailed usage entry only if `usage-log.json` already exists or the user requested detailed history.
 
 ## Profile Commands
 
@@ -288,7 +354,7 @@ Understand these request types:
 - "use the academic adapter" -> proceed to PPT Requirement Discovery with that adapter
 - "export prompt" -> generate derived `design-prompt.md`
 - "use this profile for a deck" -> proceed to PPT Requirement Discovery
-- "what did I use this design for?" -> usage log
+- "what did I use this design for?" -> show compact usage pointers or create/read `usage-log.json` if detailed history is requested
 
 Avoid destructive actions. If the user asks to delete a profile, prefer archiving and ask for explicit confirmation.
 
@@ -338,5 +404,5 @@ selected/saved profile version
 -> Page Specs
 -> HTML deck
 -> optional PDF/PPTX export if requested
--> usage log update
+-> compact usage pointer update
 ```

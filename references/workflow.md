@@ -4,14 +4,16 @@ V3 is a complete Design DNA loop. It can create a deck from reference images, a 
 
 V3 is HTML-first and profile-library-first. The deck is authored as fixed-stage animated HTML, then optionally exported to PDF/PPTX only if the user asks.
 
+Before asking for new reference images, check whether the user is likely trying to reuse an existing Design DNA. If the current project has `design-profiles/profile-index.json`, read that one file and offer saved profiles/adapters as possible design sources. Do not recursively scan the workspace.
+
 ## Mandatory Order
 
 The order is strict:
 
 ```text
 1. User provides a design source:
-   A. reference images
-   B. saved Design Profile or adapter
+   A. saved Design Profile or adapter
+   B. reference images
    C. no-image Design Discovery choices
 2. Extract or generate Design DNA
 3. Show the Design DNA parameter panel
@@ -33,6 +35,41 @@ Do not ask "topic / audience / page count / purpose / content source / PPTX expo
 Do not ask how slide images should appear before step 5 unless the user explicitly says a provided image is slide content. Image intent is not Design Intake; it is a deck-planning choice after the profile exists.
 
 ## Phase 1: Design Intake
+
+### Existing Profile Lookup
+
+If the user says things like "use my saved design", "reuse that profile", "use Apple Academic", "show my designs", "用我保存的 Design DNA", or if `design-profiles/profile-index.json` exists in the current project, treat the Profile Library as a first-class design source.
+
+Read only:
+
+```text
+design-profiles/profile-index.json
+design-profiles/<selected-profile>/profile.json
+design-profiles/<selected-profile>/versions/<current-version>.json
+```
+
+If the user selects an adapter, also read:
+
+```text
+design-profiles/<selected-profile>/adapters/<adapter-id>/adapter.json
+design-profiles/<selected-profile>/adapters/<adapter-id>/versions/<current-adapter-version>.json
+```
+
+Then show a compact choice:
+
+```text
+我找到了可复用的 Design Profiles：
+01 Cyber Minimal Editorial - v002 - 适合 product launch / portfolio - adapters: academic
+02 Apple Academic - v001 - 适合 defense / research report
+
+你想：
+A. 直接使用某个 Profile
+B. 使用某个 Adapter
+C. 先微调再生成新版本
+D. 新建一个 Design DNA
+```
+
+Do not ask for reference images when a matching saved profile or adapter is available unless the user wants to create a new style.
 
 Accept any explicit user-provided visual reference:
 
@@ -269,28 +306,28 @@ Profile fields:
 - negative_constraints
 - profile_metadata
 - versioning
-- usage
+- compact usage pointers, if present
 - adapters, if any
 
 Reusable / compounding artifacts:
 
-- design-profile.json
-- profile versions
-- Design Diff notes
 - profile-index.json
+- profile.json
+- profile version snapshots
+- machine-readable Design Diff JSON
 - adapter records
-- usage-log.json
 
 Project-local artifacts:
 
-- design-contract.json
-- ppt-blueprint.json
-- page-specs.json
+- index.html
+- deck-manifest.json
 
 Final output:
 
-- index.html or deck.html
+- outputs/<deck-slug>/index.html
 - optional PDF/PPTX export
+
+Planning artifacts such as Design Contract, PPT Blueprint, and Page Specs are required steps, but they are transient by default. Persist them under `outputs/<deck-slug>/specs/` only when the user asks to inspect, edit, audit, or regenerate from specs.
 
 In the final response, mention only the final deck, reusable profile, current profile/adapter version, adapter strategy if used, and known limitations unless the user asks for internal specs.
 

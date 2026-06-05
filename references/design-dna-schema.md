@@ -19,13 +19,56 @@ V3 uses a layered schema. The user sees a simple control panel and profile libra
   "tokens": {},
   "profile_metadata": {},
   "versioning": {},
-  "usage": {},
+  "compact_usage": {},
   "adapters": {},
   "quality_constraints": {}
 }
 ```
 
-For saved profiles, `profile_metadata`, `versioning`, and `usage` are required. `discovery` is required when the profile came from no-image Design Discovery. `adapters` is required when scenario variants are created.
+For saved profiles, `profile_metadata` and `versioning` are required. `compact_usage` is optional. `discovery` is required when the profile came from no-image Design Discovery. `adapters` is required only when scenario variants are created.
+
+## Minimal Reproducible Profile
+
+A saved Design Profile should keep only what is needed to reproduce the style.
+
+Required in every version snapshot:
+
+- `version`
+- `profile_id`
+- `profile_name`
+- `source` or `discovery`
+- `user_dna`
+- `execution_dna`
+- `tokens`
+- `negative_constraints`
+- `design_prompt`
+- `quality_constraints`
+
+Required in `profile.json`:
+
+- `profile_id`
+- `display_name`
+- `current_version`
+- `created_at`
+- `updated_at`
+- `source_summary`
+- `best_for`
+- `risky_for`
+- `primary_moods`
+- `one_line_summary`
+- `versions`
+- `adapters`, if any
+
+Optional by default:
+
+- copied reference images
+- thumbnail galleries
+- detailed usage logs
+- exported prompts
+- exported design tokens
+- human-readable reports
+
+Store bulky or derived assets only when the user asks for them. The source of truth is the version snapshot JSON, not exported prompts or reports.
 
 ## Source
 
@@ -108,6 +151,7 @@ Saved profiles need enough metadata to become manageable assets.
     "created_at": "2026-06-05T21:40:00+08:00",
     "updated_at": "2026-06-05T22:10:00+08:00",
     "last_used_at": "2026-06-05T22:30:00+08:00",
+    "last_output_path": "outputs/math-modeling-defense/index.html",
     "best_for": ["product launch", "tech portfolio", "creative pitch"],
     "risky_for": ["formula-heavy defense", "dense financial report"],
     "primary_moods": ["minimal", "tech", "editorial"],

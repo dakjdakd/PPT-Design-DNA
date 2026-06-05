@@ -4,19 +4,19 @@ V3 is HTML-first. HTML is the visual source of truth because it supports layout 
 
 ## Output Model
 
-Prefer a single self-contained `index.html` when possible.
+Follow [Output Contract](output-contract.md).
 
-Use a small folder only when needed for user-approved content images, generated images, fonts, or media:
+Always save generated decks under:
 
 ```text
-deck-output/
+outputs/<deck-slug>/
   index.html
-  assets/
-    images/
-    fonts/
-  profile/
-    design-profile.json
+  deck-manifest.json
 ```
+
+Prefer a self-contained `index.html` when possible.
+
+Use `assets/` only when needed for user-approved content images, generated images, fonts, or media. Use `exports/` only when PDF/PPTX is requested. Use `specs/` only when the user asks to inspect, edit, audit, or regenerate from internal specs.
 
 Reference images used for style extraction must not be copied into `assets/images/` unless the user explicitly marks them as content.
 
