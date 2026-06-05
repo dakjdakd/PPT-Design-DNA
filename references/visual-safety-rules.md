@@ -1,0 +1,233 @@
+# Visual Safety Rules
+
+Use these rules whenever generating an HTML deck. They target the common failures users notice first: ugly empty image slots, unreadable text, decorative shapes covering content, and poor composition.
+
+## Core Principle
+
+A slide is valid only when every visible element has a role and a safe relationship to nearby elements.
+
+Before rendering each slide, define:
+
+- content zones
+- visual zones
+- decorative zones
+- navigation safe zone
+- z-index ladder
+- contrast pairs
+- typography spacing and text-stack clearance
+- collision exclusions
+
+Do not rely on a loose prompt. Encode safety in Page Specs, CSS tokens, layer rules, and visual-slot policy before writing the final deck.
+
+## Image And Visual Slots
+
+Reference images are style evidence only. They are not deck images unless the user explicitly marks them as slide content.
+
+For full image handling, use [Image Asset Strategy](image-asset-strategy.md). It defines content images, replaceable slots, image manifests, AI-generated visuals, and slot types.
+
+Never draw a generic empty image placeholder such as:
+
+- a blank white rectangle with a plus sign
+- a large flat box that repeats on every slide
+- a "drop image here" area
+- a decorative block that pretends to be an image slot
+
+If a slide needs visual weight but no approved content image exists, use one of these instead:
+
+- **Typographic visual**: oversized keyword, number, or phrase integrated into the layout.
+- **CSS/SVG diagram**: flow, matrix, orbit, grid, timeline, topology, or data shape.
+- **Generated visual brief**: a clearly described image prompt or image-generation task, only if the user approves image generation.
+- **Material object**: abstract CSS shape derived from the Design DNA, with no "image placeholder" affordance.
+- **Empty space**: intentional whitespace when the Design DNA supports it.
+
+Approved content images can use these display modes:
+
+| Mode | Use for | Rules |
+|---|---|---|
+| `hero_bleed` | atmospheric cover/section image | full or partial bleed with mandatory scrim/plate for text |
+| `object_focus` | one strong photo/product/person/object | large crop, protected text area, no overlap unless text has a contrast plate |
+| `screenshot_frame` | website, software, code, dashboard | contain or framed crop, preserve legibility, captions outside the image |
+| `evidence_card` | screenshot, chart, UI, document | contain, readable labels, caption outside |
+| `image_grid` | multiple related images | consistent aspect ratio, equal height, same treatment |
+| `editorial_cutout` | magazine-like people/object crop | protected title zone; intentional crop only |
+| `background_texture` | atmospheric or full-bleed visual | mandatory scrim/overlay and contrast audit for all text |
+
+If the Page Spec asks for an image but no image asset is approved, the renderer must change the visual strategy instead of drawing a placeholder.
+
+If the user asks for later-replaceable image slots, visible placeholders must be designed in the active Design DNA. Default to hidden slots with CSS fallback, not a visible empty frame.
+
+## Text Contrast
+
+Every text element must declare its background context:
+
+```json
+{
+  "text_surface_pair": {
+    "text": "var(--ink)",
+    "surface": "var(--bg)",
+    "surface_type": "solid",
+    "contrast_target": "high"
+  }
+}
+```
+
+Hard rules:
+
+- never use white text on pale gray, pale blue, pale yellow, or low-saturation light surfaces
+- never use accent-blue text on a blue background unless luminance contrast is high
+- never place text directly over busy images, gradients, glow, dots, or large decorative type
+- text on images must use a scrim, solid label plate, outline plate, or move outside the image
+- cards/panels must set both background and text color as a pair
+- pale surfaces use dark ink; dark surfaces use light ink; accent surfaces use a preselected contrast ink
+
+Minimum contrast targets:
+
+- body, captions, chart labels, formula labels: at least 4.5:1 contrast
+- large display text: at least 3:1 contrast, preferably 4.5:1
+- text over image or patterned background: at least 4.5:1 after scrim or plate
+
+When in doubt, increase contrast by changing the text color or adding a clean plate. Do not add glow as the primary readability fix.
+
+## Surface Pair Tokens
+
+Create explicit text/surface pairs from the Design DNA:
+
+```css
+:root {
+  --surface-light: #f6f7f8;
+  --surface-light-ink: #101114;
+  --surface-dark: #080a0f;
+  --surface-dark-ink: #ffffff;
+  --surface-accent: #0877ff;
+  --surface-accent-ink: #ffffff;
+  --surface-muted: #dfe7ef;
+  --surface-muted-ink: #111827;
+}
+```
+
+Do not style cards as `background: var(--surface-muted); color: white;`. This is a blocking failure.
+
+## Z-Index Ladder
+
+Use a consistent layer system:
+
+```css
+.layer-bg { z-index: 0; }
+.layer-atmosphere { z-index: 1; }
+.layer-decoration { z-index: 2; pointer-events: none; }
+.layer-media { z-index: 4; }
+.layer-content { z-index: 10; }
+.layer-emphasis { z-index: 12; }
+.layer-chrome { z-index: 80; }
+.layer-nav { z-index: 90; }
+```
+
+Rules:
+
+- text, charts, formulas, and labels must be above decorative and media layers unless intentionally placed on a contrast plate
+- decorative elements cannot cross the content safe zone unless their opacity is very low and they do not reduce contrast
+- oversized background type must stay behind foreground text and must not share the same baseline region
+- large media/objects must have an exclusion zone so text is not hidden behind them
+- navigation controls must be outside the content area or reserve a safe area
+
+## Collision And Safe Zones
+
+Every Page Spec must define slide-level safe zones:
+
+```json
+{
+  "safe_zones": {
+    "content": { "x": 96, "y": 80, "w": 1728, "h": 900 },
+    "nav": { "x": 1680, "y": 980, "w": 220, "h": 70 },
+    "no_text": [
+      { "reason": "hero object", "x": 1120, "y": 120, "w": 700, "h": 760 }
+    ]
+  }
+}
+```
+
+Hard rules:
+
+- no primary text can intersect `no_text`
+- no card or text block can extend into the navigation zone
+- decorative objects can be cropped off-stage, but content cannot
+- if a hero visual is oversized, reserve a real text column or move the title above it
+- if content blocks collide, split the slide or switch layout; do not keep shrinking text
+
+## Typography Spacing Safety
+
+Text-to-text collisions are blocking failures, even when no boxes overlap in CSS. Check the visual shape of glyphs, especially for large titles, Chinese characters, English descenders, and stroked/shadowed display type.
+
+Hard rules:
+
+- A display title may be tight, but its glyphs cannot touch the next title line, subtitle, divider, body paragraph, badge, or caption.
+- Chinese display headings need more line-height than Latin-only headings at the same size. Do not use very tight Latin poster settings for CJK.
+- If a title uses thick stroke, black offset shadow, glow, duplicate colored layers, or cartoon/pop treatment, reserve extra vertical padding around the title block.
+- Subtitle and body text must start after the title's visual effect area, not after the raw CSS line box.
+- A divider line under a title needs at least 28-44px clearance from the title's visible bottom and 28-44px from the lead/body top.
+- Navigation and footer text cannot be squeezed into the same baseline area as slide body text.
+
+Compact safe defaults:
+
+| Pair | Minimum visible gap |
+|---|---:|
+| huge title line -> huge title line | 10-18px visible air |
+| huge title block -> subtitle/lead | 44-72px |
+| stroked/shadow title -> next text | 56-88px |
+| section title -> body/card | 34-56px |
+| badge/eyebrow -> title | 18-32px |
+| divider line -> nearby text | 28-44px |
+
+If a slide feels too loose after applying spacing, reduce copy, split title lines more intentionally, or reduce font size by 5-10%. Do not collapse safe gaps until glyphs touch.
+
+## Composition Rules
+
+Avoid repeated "thing on the right" layouts. A visual zone must be chosen because the page needs it, not because the generator habitually fills a side.
+
+Use the visual role matrix:
+
+| Page role | Preferred visual strategy |
+|---|---|
+| Cover | hero type, approved hero image, or abstract DNA object |
+| Pipeline/process | diagram first, not empty media box |
+| Evaluation/criteria | matrix, score ring, cards with high-contrast ink |
+| Comparison | two-column or 2x2 matrix, no giant unrelated side object |
+| Next steps | roadmap, numbered path, or three action blocks |
+| Quote/manifesto | typography and negative space; background type must not cover the quote |
+
+If a right-side visual is used, it must have one of these roles:
+
+- content evidence
+- metaphorical anchor
+- diagram container
+- section rhythm device
+- generated/approved image
+
+Otherwise remove it.
+
+## Motion Safety
+
+Final resting state must be readable.
+
+- no animation may leave text behind another object
+- no rotating or floating object may cross a text zone at rest
+- animated decorative layers must sit below content layers
+- text reveal must complete before export
+- dense/academic adapters should reduce or disable decorative motion
+
+## Generation Correction Mapping
+
+Use these source-level corrections:
+
+| Failure | Patch |
+|---|---|
+| empty image placeholder | replace with typographic visual, diagram, or whitespace |
+| low text contrast | change text/surface pair, add plate, or move text |
+| object covers text | update z-index and collision zones; move or crop object |
+| card text unreadable | switch card variant to valid surface pair |
+| title/subtitle/body squeezed | increase title line-height, add visual-effect padding, add compact safe gap, split title lines, or reduce title size by 5-10% |
+| oversized side visual unrelated | remove, convert to diagram, or make it background-only |
+| content too dense | split slide, compress copy, or change layout |
+| nav covers content | reserve nav safe zone or move controls outside stage |
+
+Mechanical failures such as overlap, overflow, unreadable contrast, and accidental placeholders should be corrected directly during generation without asking the user.
