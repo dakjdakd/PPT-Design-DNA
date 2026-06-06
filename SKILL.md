@@ -215,10 +215,22 @@ Before generating HTML slides, apply [Visual Safety Rules](references/visual-saf
 - navigation controls covering slide content
 - cards whose background and text colors are not designed as a pair
 - title, subtitle, divider, and body text squeezed together because line-height or vertical gaps are too tight
+- surface/ink pairs that are inherited accidentally instead of declared for each readable region
+- title, card, visual, decoration, footer, and navigation zones competing for the same space
+- layout archetypes carrying more content than their capacity allows
 
 If a slide needs a visual but has no user-approved content image, use typography, diagrams, CSS/SVG visuals, intentional whitespace, or ask for/generated images when appropriate. Do not create a fake image placeholder.
 
 Typography spacing is a mandatory visual safety category. Large titles must reserve visual clearance for Chinese glyph height, English descenders, stroke, shadow, glow, and offset layers. Keep spacing compact but safe: do not solve squeezed text by making the whole deck loose; instead use safe line-height, small visual-effect padding, controlled gaps, title splitting, or a slight font-size reduction.
+
+Surface Pair, Zone Budget, and Layout Capacity are P0 mechanical constraints, not aesthetic suggestions. They protect freedom by preventing mechanical failures; they must not turn the deck into a fixed template system:
+
+- Every readable region must declare a `surface_token` and `ink_token`. Cards, labels, badges, stat blocks, captions, chart labels, and formula labels cannot inherit text color from the slide.
+- Pale or bright surfaces such as white, light gray, pale blue, pale pink, and bright yellow default to dark ink. Do not use white text on them.
+- Zone Budget is a per-slide dynamic safety declaration, not a reusable template. Each slide may choose its own composition, but must declare the actual `title_zone`, `body_zone`, `visual_zone`, `card_zone`, `footer_zone`, `nav_safe_zone`, and `decoration_zone` when those roles exist.
+- Zones use the fixed 1920x1080 stage coordinate system only for collision reasoning. They must come from the slide's unique composition and must not force repeated layouts.
+- Main text zones cannot intersect visual, decoration, footer, navigation, or no-text zones. If there is no room, change layout, split the slide, reduce card count, compress copy, or lower decorative weight.
+- Layout Capacity is a freedom-preserving capacity check, not a template rule. It says what a page type can safely carry; it does not dictate where everything must go.
 
 ## Option-First Requirement Collection
 

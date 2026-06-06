@@ -44,6 +44,8 @@ Do not knowingly generate a slide with any of these issues:
 - chart too small to read
 - contrast too low
 - white or low-contrast text on pale card/background/image
+- pale or bright cards, stat blocks, badges, labels, captions, or chart labels inheriting unreadable text color
+- shallow surface/ink pairing such as white text on bright yellow, pale gray, pale blue, pale pink, white, or translucent white
 - text on a busy image, glow, dot pattern, or gradient without a scrim/plate
 - more than one unrelated primary focus
 - too many bullets for the selected density
@@ -58,6 +60,9 @@ Do not knowingly generate a slide with any of these issues:
 - decorative object, media object, background type, or overlay covers text at rest
 - a visual object intersects a declared no-text or collision-exclusion zone
 - navigation controls cover content
+- title zone and card/body/visual zones compete for the same physical space
+- CJK display title glyphs collide because of Latin poster line-height, negative tracking, or missing reserved title-zone height
+- huge title, subtitle, divider, body, card, or footer text visually touch because the text stack has no real clearance
 
 ## Preferred Generation Corrections
 
@@ -80,9 +85,13 @@ Common corrections:
 - replace_empty_slot_with_typography
 - remove_unneeded_side_visual
 - apply_valid_surface_pair
+- assign_explicit_surface_and_ink_tokens
 - add_text_plate_or_scrim
 - update_z_index_ladder
 - create_no_text_zone
+- create_dynamic_zone_budget
+- enforce_layout_capacity_gate
+- split_or_recompose_when_zones_collide
 - move_detail_to_speaker_notes
 - reduce_motion
 - reserve_nav_safe_area
@@ -177,7 +186,26 @@ For each slide:
 The following are P0 issues:
 
 - unreadable text caused by color pairing
+- pale card or bright accent card with inherited white or low-contrast text
 - any text hidden behind an object
 - any text crossing a busy image without a plate or scrim
 - any fake image placeholder in final output
 - any slide where navigation covers content
+- any CJK display title using unsafe line-height or negative tracking that causes visual collision
+- any title/card/body/visual overlap caused by missing dynamic zone budget
+
+## Source-Level Mechanical Preflight
+
+This is a lightweight source-level authoring check, not a post-generation screenshot review loop. It should be used while writing or revising HTML, and it ends at the requested artifact.
+
+Check the HTML/CSS source for obvious mechanical failures:
+
+- `color: white` or `color: #fff` inside light card, stat, badge, label, caption, or bright accent components without an explicit compatible surface.
+- `.card`, `.stat-card`, `.badge`, `.caption`, `.label`, chart labels, and formula labels missing explicit `color`.
+- CJK display selectors using `line-height < 0.98`, negative `letter-spacing`, or Latin poster settings such as `.8`, `.85`, or `.9`.
+- visible placeholder language or blank boxes such as `drop image here`, plus-sign empty frames, or meaningless right-side image areas.
+- navigation controls positioned over body/card/footer zones.
+- decoration, media, or background type assigned a higher z-index than content without a contrast plate.
+- `overflow: hidden` used on text containers to mask missing capacity instead of revising copy, layout, or page count.
+
+These checks do not require browser screenshots and must not reintroduce the removed screenshot-review-and-revision flow.

@@ -94,12 +94,17 @@ Required fields:
 - motion_recipe
 - quality_targets
 - safe_zones
+- zone_budget
+- layout_capacity
 - visual_slot_policy
 - image_strategy
 - text_surface_pairs
+- surface_pair_plan
 - typography_spacing
+- text_stack_plan
 - z_index_plan
 - collision_exclusions
+- mechanical_failure_fixes
 - speaker_note
 
 Example:
@@ -162,6 +167,25 @@ Example:
       "image_or_diagram_weight": 70,
       "whitespace": 65,
       "minimum_font_size": 26,
+      "zone_budget": {
+        "principle": "dynamic safety declaration, not a reusable template",
+        "title_zone": { "x": 110, "y": 90, "w": 980, "h": 140 },
+        "body_zone": { "x": 1400, "y": 300, "w": 360, "h": 390 },
+        "visual_zone": { "x": 180, "y": 280, "w": 1180, "h": 420 },
+        "card_zone": null,
+        "footer_zone": { "x": 96, "y": 984, "w": 700, "h": 48 },
+        "nav_safe_zone": { "x": 1680, "y": 980, "w": 220, "h": 70 },
+        "decoration_zone": null,
+        "no_text_zones": [],
+        "layout_is_unique_to_slide": true
+      },
+      "layout_capacity": {
+        "archetype": "process_flow",
+        "capacity_status": "pass",
+        "max_primary_blocks": 3,
+        "actual_primary_blocks": 2,
+        "if_exceeded": "split_slide_or_switch_archetype"
+      },
       "text_surface_pairs": [
         {
           "zone": "title",
@@ -174,6 +198,20 @@ Example:
           "text": "var(--surface-light-ink)",
           "surface": "var(--surface-light)",
           "contrast_target": "4.5:1"
+        }
+      ],
+      "surface_pair_plan": [
+        {
+          "zone": "title",
+          "surface_token": "--bg",
+          "ink_token": "--ink",
+          "inheritance_allowed": false
+        },
+        {
+          "zone": "explanation",
+          "surface_token": "--surface-light",
+          "ink_token": "--surface-light-ink",
+          "inheritance_allowed": false
         }
       ],
       "typography_spacing": {
@@ -192,6 +230,16 @@ Example:
           "line_height": 1.32,
           "gap_after": 24
         }
+      },
+      "text_stack_plan": {
+        "display_title": {
+          "reserved_zone_height": 140,
+          "line_count": 1,
+          "cjk_or_mixed_script": false,
+          "descender_or_effect_clearance": 20,
+          "next_block_clearance": 52
+        },
+        "fallback_if_too_tall": "split_title_or_reduce_font_5_to_12_percent"
       },
       "visual_slot_policy": {
         "image_or_visual_role": "diagram",
@@ -223,6 +271,16 @@ Example:
       "collision_exclusions": [
         "no primary text inside nav zone",
         "no decorative object above content layer"
+      ],
+      "mechanical_failure_fixes": [
+        {
+          "failure": "card_text_unreadable",
+          "fix": "apply_valid_surface_pair"
+        },
+        {
+          "failure": "title_card_collision",
+          "fix": "increase_title_zone_or_split_slide"
+        }
       ]
     },
     "motion_recipe": {
@@ -308,6 +366,9 @@ The renderer must:
 - prevent fake image placeholders and repeated meaningless side visuals
 - prevent late image insertion after the blueprint has been planned
 - enforce valid text/surface pairs
+- enforce explicit surface/ink tokens for every readable component
+- enforce per-slide dynamic zone budgets without turning them into repeated templates
+- enforce layout capacity before HTML is written
 - enforce typography spacing and title-stack clearance
 - enforce z-index layer order and collision exclusions
 
@@ -328,8 +389,11 @@ Renderer should enforce:
 - no overlap
 - no overflow
 - allowed layout archetypes
+- dynamic zone budget
+- layout capacity gate
 - no empty image placeholders
 - no unreadable text/surface pairs
+- no inherited card/stat/badge text color without explicit surface/ink pair
 - no title/subtitle/body text squeezing caused by unsafe line-height or missing vertical clearance
 - no decorative/media layer covering text
 
@@ -340,6 +404,27 @@ Every real Page Spec must include the following fields. If any field cannot be f
 ```json
 {
   "visual_safety": {
+    "zone_budget": {
+      "principle": "dynamic per-slide safety declaration, not a template",
+      "title_zone": { "x": 96, "y": 80, "w": 1120, "h": 220 },
+      "body_zone": { "x": 96, "y": 340, "w": 820, "h": 420 },
+      "visual_zone": { "x": 1040, "y": 160, "w": 760, "h": 620 },
+      "card_zone": { "x": 96, "y": 760, "w": 1480, "h": 150 },
+      "footer_zone": { "x": 96, "y": 980, "w": 720, "h": 48 },
+      "nav_safe_zone": { "x": 1680, "y": 980, "w": 220, "h": 70 },
+      "decoration_zone": { "x": 0, "y": 0, "w": 1920, "h": 1080 },
+      "no_text_zones": [
+        { "reason": "hero visual", "x": 1120, "y": 120, "w": 700, "h": 760 }
+      ],
+      "layout_is_unique_to_slide": true
+    },
+    "layout_capacity": {
+      "archetype": "single_big_claim | cover_hero | three_point_argument | stat_grid | split_text_visual | closing_takeaway | other",
+      "capacity_status": "pass | revise_before_render",
+      "actual_primary_blocks": 1,
+      "max_primary_blocks": 3,
+      "revision_if_failed": "compress_copy | split_slide | switch_archetype | reduce_card_count | lower_decoration"
+    },
     "safe_zones": {
       "content": { "x": 96, "y": 80, "w": 1728, "h": 900 },
       "nav": { "x": 1680, "y": 980, "w": 220, "h": 70 },
@@ -375,6 +460,15 @@ Every real Page Spec must include the following fields. If any field cannot be f
         "contrast_target": "4.5:1"
       }
     ],
+    "surface_pair_plan": [
+      {
+        "zone": "card_1",
+        "surface_token": "--surface-muted",
+        "ink_token": "--surface-muted-ink",
+        "inheritance_allowed": false,
+        "reason": "light surfaces use dark ink"
+      }
+    ],
     "typography_spacing": {
       "display_title": {
         "font_size": 144,
@@ -391,6 +485,18 @@ Every real Page Spec must include the following fields. If any field cannot be f
         "gap_after": 24
       }
     },
+    "text_stack_plan": {
+      "display_title": {
+        "reserved_zone_height": 260,
+        "line_count": 2,
+        "line_height": 1.08,
+        "letter_spacing": 0,
+        "cjk_or_mixed_script": true,
+        "descender_or_effect_clearance": 24,
+        "next_block_clearance": 56
+      },
+      "fallback_if_too_tall": "split_title_lines | reduce_font_5_to_12_percent | move_cards | split_slide"
+    },
     "z_index_plan": {
       "background": 0,
       "atmosphere": 1,
@@ -404,6 +510,12 @@ Every real Page Spec must include the following fields. If any field cannot be f
       "primary text cannot intersect no_text zones",
       "cards cannot intersect nav zone",
       "decoration cannot sit above content"
+    ],
+    "mechanical_failure_fixes": [
+      "pale cards must use dark ink",
+      "title/card collisions require zone revision",
+      "decorations crossing body text must move or lower opacity",
+      "fake visual slots must become diagrams, typography, or whitespace"
     ]
   }
 }

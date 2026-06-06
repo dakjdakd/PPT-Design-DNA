@@ -16,8 +16,12 @@ Before rendering each slide, define:
 - contrast pairs
 - typography spacing and text-stack clearance
 - collision exclusions
+- dynamic zone budget
+- layout capacity gate
 
 Do not rely on a loose prompt. Encode safety in Page Specs, CSS tokens, layer rules, and visual-slot policy before writing the final deck.
+
+These constraints are not templates. They do not prescribe where a title, card, diagram, or visual must appear. They require each free composition to prove that readable content has enough space, contrast, and layer priority.
 
 ## Image And Visual Slots
 
@@ -74,10 +78,12 @@ Every text element must declare its background context:
 Hard rules:
 
 - never use white text on pale gray, pale blue, pale yellow, or low-saturation light surfaces
+- never use white text on bright yellow, pale pink, white, translucent white, or off-white stat cards
 - never use accent-blue text on a blue background unless luminance contrast is high
 - never place text directly over busy images, gradients, glow, dots, or large decorative type
 - text on images must use a scrim, solid label plate, outline plate, or move outside the image
 - cards/panels must set both background and text color as a pair
+- stat cards, labels, badges, captions, chart labels, formula labels, and navigation chrome must set explicit `background` and `color`; they cannot inherit either from the slide by accident
 - pale surfaces use dark ink; dark surfaces use light ink; accent surfaces use a preselected contrast ink
 
 Minimum contrast targets:
@@ -100,12 +106,14 @@ Create explicit text/surface pairs from the Design DNA:
   --surface-dark-ink: #ffffff;
   --surface-accent: #0877ff;
   --surface-accent-ink: #ffffff;
+  --surface-accent-yellow: #e5ff00;
+  --surface-accent-yellow-ink: #050505;
   --surface-muted: #dfe7ef;
   --surface-muted-ink: #111827;
 }
 ```
 
-Do not style cards as `background: var(--surface-muted); color: white;`. This is a blocking failure.
+Do not style cards as `background: var(--surface-muted); color: white;`. Do not style a yellow card as `background: var(--surface-accent-yellow); color: white;`. These are blocking failures.
 
 ## Z-Index Ladder
 
@@ -132,7 +140,7 @@ Rules:
 
 ## Collision And Safe Zones
 
-Every Page Spec must define slide-level safe zones:
+Every Page Spec must define slide-level safe zones. These zones are generated dynamically for the current slide composition; they are not a reusable layout template:
 
 ```json
 {
@@ -150,9 +158,34 @@ Hard rules:
 
 - no primary text can intersect `no_text`
 - no card or text block can extend into the navigation zone
+- no title zone can overlap card, footer, or body zones unless the overlap is an intentional typographic composition and there is no readability conflict
+- no decoration zone can cross a body, chart, formula, caption, or navigation zone at normal opacity
 - decorative objects can be cropped off-stage, but content cannot
 - if a hero visual is oversized, reserve a real text column or move the title above it
 - if content blocks collide, split the slide or switch layout; do not keep shrinking text
+
+## Dynamic Zone Budget
+
+Use a dynamic zone budget for every slide with more than one major element. The generated zones prove that the free composition is physically possible.
+
+Required role zones when present:
+
+- `title_zone`
+- `body_zone`
+- `visual_zone`
+- `card_zone`
+- `footer_zone`
+- `nav_safe_zone`
+- `decoration_zone`
+
+Rules:
+
+- Missing roles do not need fake zones. A slide without content images should not create a fake image zone.
+- `title_zone` must include the full visible title height, including line-height, descenders, stroke, shadow, glow, and offset layers.
+- `body_zone` and `card_zone` must begin after the title stack's visible clearance unless the design intentionally separates them into a different column with safe distance.
+- `visual_zone` must be meaningful: evidence, diagram, metaphorical anchor, approved/generated image, or rhythmic device. Otherwise remove it.
+- `nav_safe_zone` must be reserved before cards, captions, and footer are placed.
+- If a free composition cannot satisfy the budget, generate a different composition rather than forcing a template.
 
 ## Typography Spacing Safety
 
@@ -162,6 +195,8 @@ Hard rules:
 
 - A display title may be tight, but its glyphs cannot touch the next title line, subtitle, divider, body paragraph, badge, or caption.
 - Chinese display headings need more line-height than Latin-only headings at the same size. Do not use very tight Latin poster settings for CJK.
+- CJK display headings use `letter-spacing: 0`; negative tracking is a blocking failure when it causes visual collision.
+- Do not use `line-height: .8`, `.85`, or `.9` for CJK display headings. A Latin poster setting must not be copied into Chinese title pages.
 - If a title uses thick stroke, black offset shadow, glow, duplicate colored layers, or cartoon/pop treatment, reserve extra vertical padding around the title block.
 - Subtitle and body text must start after the title's visual effect area, not after the raw CSS line box.
 - A divider line under a title needs at least 28-44px clearance from the title's visible bottom and 28-44px from the lead/body top.
@@ -184,6 +219,8 @@ If a slide feels too loose after applying spacing, reduce copy, split title line
 
 Avoid repeated "thing on the right" layouts. A visual zone must be chosen because the page needs it, not because the generator habitually fills a side.
 
+Layout archetypes are capacity gates, not templates. They identify what a slide can safely carry, while the actual composition remains free and derived from Design DNA.
+
 Use the visual role matrix:
 
 | Page role | Preferred visual strategy |
@@ -205,6 +242,15 @@ If a right-side visual is used, it must have one of these roles:
 
 Otherwise remove it.
 
+Capacity rules:
+
+- `cover_hero` carries one main title, one subtitle/lead, and optional small meta only.
+- `single_big_claim` carries one dominant claim plus at most one supporting block.
+- `three_point_argument` carries up to three primary cards/points after the title has real visual clearance.
+- `stat_grid` carries up to four stat cards, each with explicit surface/ink pair and enough internal padding.
+- `split_text_visual` requires a meaningful visual role and protected text area.
+- `closing_takeaway` cannot force a huge title and action cards into the same vertical zone; split when needed.
+
 ## Motion Safety
 
 Final resting state must be readable.
@@ -225,7 +271,10 @@ Use these source-level corrections:
 | low text contrast | change text/surface pair, add plate, or move text |
 | object covers text | update z-index and collision zones; move or crop object |
 | card text unreadable | switch card variant to valid surface pair |
+| pale card inherits white text | assign explicit dark ink token to the card and its descendants |
 | title/subtitle/body squeezed | increase title line-height, add visual-effect padding, add compact safe gap, split title lines, or reduce title size by 5-10% |
+| title and cards compete for space | change composition, move cards below/aside with a safe gap, reduce card count, or split slide |
+| decoration crosses readable content | lower opacity, move to decoration zone, crop off-stage, or remove |
 | oversized side visual unrelated | remove, convert to diagram, or make it background-only |
 | content too dense | split slide, compress copy, or change layout |
 | nav covers content | reserve nav safe zone or move controls outside stage |

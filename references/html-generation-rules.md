@@ -113,6 +113,57 @@ Add surface-pair tokens for readability:
 
 Do not use white text on pale cards, pale blue panels, pale gray blocks, or light image areas. A card background and card text color must always be chosen as a pair.
 
+## Surface Pair Implementation
+
+Surface pairs are mechanical readability constraints, not style templates. They do not control composition; they only ensure that every readable element has a valid foreground/background relationship.
+
+Rules:
+
+- Every text-bearing region must declare both `surface_token` and `ink_token` in the Page Spec before HTML is written.
+- Do not rely on inherited `color` for cards, badges, stat blocks, captions, chart labels, formula labels, callouts, or navigation chrome.
+- Do not write standalone `color: white`, `color: #fff`, or `color: var(--ink)` on a component unless the component's background surface is also explicit and compatible.
+- Bright yellow, pale gray, pale blue, pale pink, white, translucent white, and other light surfaces default to dark ink.
+- Dark surfaces default to light ink only when contrast is high enough and the component is actually dark.
+- Accent surfaces must use a preselected contrast ink such as `--surface-accent-ink`; choose black ink for bright/high-luminance accents.
+
+Recommended component pattern:
+
+```css
+.surface-light {
+  background: var(--surface-light);
+  color: var(--surface-light-ink);
+}
+
+.surface-dark {
+  background: var(--surface-dark);
+  color: var(--surface-dark-ink);
+}
+
+.surface-accent-yellow {
+  background: var(--surface-accent-yellow);
+  color: var(--surface-accent-yellow-ink);
+}
+
+.stat-card,
+.info-card,
+.caption-plate,
+.badge {
+  color: var(--component-ink);
+  background: var(--component-surface);
+}
+```
+
+Bad pattern:
+
+```css
+.stat-card {
+  background: #f7f7f2;
+  color: white;
+}
+```
+
+If a card becomes invisible because the slide inherited a page-level text color, fix the component by assigning the correct pair. Do not add glow, opacity tricks, or tiny borders as the main readability fix.
+
 ## Layout From Page Specs
 
 Do not freestyle slides from one prompt. Render from Page Specs.
@@ -153,6 +204,50 @@ Each Page Spec must also declare visual safety fields:
 - collision_exclusions
 
 See [Visual Safety Rules](visual-safety-rules.md).
+
+## Zone Budget Before HTML
+
+Zone Budget is a per-slide dynamic safety declaration, not a layout template. The slide may be expressive, asymmetrical, editorial, brutalist, minimal, cinematic, playful, or dense. It still needs a local map that proves content regions do not collide.
+
+Before writing HTML for each slide, declare the actual regions created by that slide's unique composition:
+
+- `title_zone`
+- `body_zone`
+- `visual_zone`
+- `card_zone`
+- `footer_zone`
+- `nav_safe_zone`
+- `decoration_zone`
+- `no_text_zones`
+
+Rules:
+
+- Coordinates are authored in the fixed 1920x1080 stage only so collisions can be reasoned about. They must not force repeated layouts across slides.
+- A zone exists only when that role exists on the slide. Do not create fake visual or card zones to satisfy a checklist.
+- Primary text cannot intersect `visual_zone`, `decoration_zone`, `nav_safe_zone`, or `no_text_zones` unless it has a declared plate/scrim and sufficient contrast.
+- `title_zone` must reserve the title's visual height after line-height, stroke, shadow, glow, offset duplicates, and descenders.
+- `card_zone` cannot begin until the title stack has a safe visual gap, unless the card is intentionally part of the title composition and still does not collide.
+- `decoration_zone` may overlap empty space, but cannot cross body text, chart labels, formulas, captions, or navigation.
+- If the zones do not fit, change composition, split the slide, reduce copy, reduce card count, or lower decoration. Do not shrink text below readability floors.
+
+Free layouts are encouraged; unbudgeted layouts are not.
+
+## Layout Capacity Gate
+
+Layout archetypes are intent labels and capacity checks, not templates. They help decide whether a slide is trying to carry too much, while leaving the visual arrangement open.
+
+Capacity rules:
+
+| Archetype | Capacity limit | If exceeded |
+|---|---|---|
+| `cover_hero` | one main title, one subtitle/lead, optional small meta/chrome | move details to next slide |
+| `single_big_claim` | one dominant claim plus at most one supporting block | convert to `three_point_argument` or split |
+| `three_point_argument` | up to three primary cards/points after a safe title zone | use timeline/matrix or split |
+| `stat_grid` | up to four stat cards, each with explicit surface/ink pair and padding | split or use `data_hero` |
+| `split_text_visual` | one meaningful visual role with protected text area | remove unrelated visual or convert to diagram |
+| `closing_takeaway` | one final takeaway plus optional action row/card zone | separate action plan into another slide |
+
+If the Page Spec does not pass the capacity gate, revise the Page Spec before generating HTML. Do not use a fixed template as the correction; choose a new composition that fits the Design DNA and content.
 
 ## Image And Visual Slot Policy
 
@@ -262,6 +357,39 @@ Rules:
 - Tight editorial styles may be compact, but the visible glyphs must not touch. Use overlap only as an intentional typographic poster effect, and never between title and explanatory body text.
 - If a large title wraps to multiple lines, reduce font size slightly, split the title into designed lines, or increase the title zone height. Do not reduce line-height below the safe range.
 - For mixed Latin + CJK headings, prefer separate spans/lines with their own line-height when needed.
+
+## CJK Display Type Rules
+
+Chinese, Japanese, and Korean display text needs its own safety rules. Do not copy Latin poster typography directly into CJK headlines.
+
+Rules:
+
+- CJK display titles default to `line-height: 1.04-1.12` depending on weight and effects.
+- CJK display titles use `letter-spacing: 0`; do not use negative tracking.
+- Avoid all-caps transforms on mixed CJK/Latin text. Style Latin spans separately when needed.
+- For mixed headings such as `AI AGENT 竞争格局`, split Latin and CJK into separate lines or spans with their own sizing and line-height when the visual balance needs it.
+- If a CJK title wraps beyond two lines, first split lines deliberately or reduce font size by 5-12%. Do not compress line-height below the safe range.
+- If a thick, black, offset, shadowed, glowing, stroked, or duplicated display effect is used, reserve extra title-zone height before placing subtitle, body, cards, or dividers.
+
+Bad pattern:
+
+```css
+.headline-zh {
+  font-size: 170px;
+  line-height: .9;
+  letter-spacing: -0.03em;
+}
+```
+
+Safer pattern:
+
+```css
+.headline-zh {
+  font-size: 148px;
+  line-height: 1.08;
+  letter-spacing: 0;
+}
+```
 
 Recommended CSS pattern:
 
