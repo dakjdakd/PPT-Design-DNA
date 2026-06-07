@@ -540,6 +540,41 @@ Every real Page Spec must include the following fields. If any field cannot be f
       },
       "fallback_if_too_tall": "split_title_lines | reduce_font_5_to_12_percent | move_cards | split_slide"
     },
+    "layout_box_budget": {
+      "stage": { "w": 1920, "h": 1080 },
+      "zones": [
+        {
+          "id": "title",
+          "role": "display_title",
+          "x": 96,
+          "y": 80,
+          "w": 1120,
+          "allocated_h": 260,
+          "text": "example title",
+          "font_family_role": "display_serif | display_sans | cjk_display | body",
+          "font_size": 120,
+          "line_height": 1.06,
+          "estimated_lines": 2,
+          "glyph_pad_top": 16,
+          "glyph_pad_bottom": 28,
+          "visual_effect_pad": 0,
+          "required_h": 299,
+          "fit": "pass | fail"
+        }
+      ],
+      "derived_zone_rules": [
+        "body_zone.y >= title_zone.y + title_zone.required_h + 44",
+        "card_zone.y >= max(planned_card_y, body_zone.y + body_zone.required_h + 56)",
+        "footer_zone.y + footer_zone.h <= nav_safe_zone.y - 24"
+      ],
+      "collision_pairs": [
+        ["title_zone", "body_zone"],
+        ["title_zone", "card_zone"],
+        ["body_zone", "card_zone"],
+        ["card_zone", "nav_safe_zone"]
+      ],
+      "if_fail": "lower_title_size_or_move_next_zone_or_split_slide"
+    },
     "z_index_plan": {
       "background": 0,
       "atmosphere": 1,
@@ -588,6 +623,13 @@ Use `mechanical_layout_preflight` before converting Page Specs into HTML. It is 
 Rules:
 
 - Estimate text boxes before writing source: available width, expected line count, script type, font size, line-height, and visual-effect padding.
+- Every slide with more than one major element must include `layout_box_budget` inside `visual_safety` or beside `mechanical_layout_preflight`. This is a numeric source-level gate, not a visual note.
+- `layout_box_budget.zones[].required_h` must be calculated as `estimated_lines * font_size * line_height + glyph_pad_top + glyph_pad_bottom + visual_effect_pad`.
+- Large display titles, serif headings, and headings containing English descenders such as `g`, `y`, `p`, `q`, and `j` must add `glyph_pad_bottom` before placing the next content zone.
+- Any later content zone must start after the previous readable zone's `y + required_h + min_gap`. Do not place cards, body text, dividers, captions, or footer content using fixed `top` values that ignore the previous zone's required height.
+- Prefer chained zone rules such as `body_zone.y = title_zone.bottom + 44` and `card_zone.y = max(planned_card_y, body_zone.bottom + 56)` over independent absolute `top` guesses.
+- `title_zone`, `body_zone`, `card_zone`, `footer_zone`, and `nav_safe_zone` are content layers and must not overlap. DOM order must not be used to let a later card or panel cover earlier text.
+- Do not fix content collisions by raising `z-index`; revise the zone budget, reduce copy, lower title size by 5-12%, change layout, or split the slide.
 - CJK display text must use safe line-height and `letter-spacing: 0`; do not import tight Latin poster settings into Chinese headings.
 - Stroked, shadowed, glowing, or duplicate-offset titles must reserve extra visible height before cards, body text, dividers, captions, or navigation are placed.
 - Card capacity includes padding and internal label/badge height.

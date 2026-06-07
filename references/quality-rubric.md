@@ -1,6 +1,6 @@
 # Quality Rubric
 
-V3 uses this rubric as a pre-generation and source-level quality contract. It is not a post-generation browser QA loop.
+V3 uses this rubric as a pre-generation and source-level quality contract. It is not a post-generation browser QA loop. The default workflow must not probe for Playwright, install browser automation packages, or debug missing browser dependencies.
 
 ## Quality Targets
 
@@ -70,6 +70,12 @@ Mechanical layout failures:
 - navigation controls cover content
 - title zone and card/body/visual zones compete for the same physical space
 - title, card, body, visual, footer, or nav zones overlap after accounting for stroke, shadow, glow, duplicate offset layers, padding, and navigation safe area
+- title/body/card/footer/nav content layers overlap after `layout_box_budget` required heights are counted
+- a title descender or visual-effect pad enters the next body, card, divider, frame, footer, or navigation zone
+- a later DOM element such as a card, panel, grid, or frame paints over earlier title/body text
+- a card grid, body note, divider, or footer uses a fixed `top` that does not reference the previous readable zone's required height
+- multi-line large English serif/display titles use `line-height < 1.06`
+- any multi-line display title uses `line-height < 0.95` when body text, cards, dividers, or frames appear below it
 - text containers use `overflow: hidden` to conceal missing capacity
 - body, card, caption, or footer content enters the navigation safe zone
 - a large side visual has no approved content role and no abstract surrogate strategy
@@ -112,8 +118,13 @@ Common corrections:
 - replace_reference_subject_with_abstract_surrogate
 - add_visual_subject_policy
 - add_mechanical_layout_preflight
+- add_layout_box_budget
 - fix_title_zone_estimate
 - fix_card_zone_collision
+- fix_content_layer_collision
+- fix_title_descender_collision
+- replace_unsafe_absolute_top_with_chained_zone_budget
+- enforce_display_title_line_height_floor
 - split_dense_evidence_slide
 
 Example:
@@ -207,6 +218,11 @@ For each slide:
 
 The following are P0 issues:
 
+- `content_layer_collision`: title/body/card/footer/nav content layers overlap after required heights and padding are counted
+- `title_descender_collision`: title descender, stroke, shadow, glow, or offset layer enters the next content zone
+- `dom_order_covering_text`: later DOM card, panel, grid, or frame covers earlier title/body text
+- `unsafe_absolute_top`: body/card/footer placement uses a fixed top that ignores prior readable zone required height
+- `unsafe_display_line_height`: multi-line display title uses a line-height below the required floor
 - unreadable text caused by color pairing
 - pale card or bright accent card with inherited white or low-contrast text
 - any text hidden behind an object
@@ -216,7 +232,14 @@ The following are P0 issues:
 - any slide where navigation covers content
 - any CJK display title using unsafe line-height or negative tracking that causes visual collision
 - any title/card/body/visual overlap caused by missing dynamic zone budget
+- any title/body/card/footer/nav overlap caused by missing or failed `layout_box_budget`
+- any large multi-line English serif/display title using `line-height < 1.06`
+- any `line-height < 0.95` display title with body text, cards, dividers, or frames directly below it
+- any title descender, stroke, shadow, glow, or offset layer entering the next content zone
+- any later DOM card, panel, grid, or frame covering earlier title/body text
+- any fixed absolute `top` placement for cards/body/footer that ignores calculated title/body required height
 - any slide missing required mechanical layout preflight when multiple major elements exist
+- any slide missing required `layout_box_budget` when multiple major elements exist
 
 ## Source-Level Mechanical Preflight
 
@@ -227,6 +250,10 @@ Check the HTML/CSS source for obvious mechanical failures:
 - `color: white` or `color: #fff` inside light card, stat, badge, label, caption, or bright accent components without an explicit compatible surface.
 - `.card`, `.stat-card`, `.badge`, `.caption`, `.label`, chart labels, and formula labels missing explicit `color`.
 - CJK display selectors using `line-height < 0.98`, negative `letter-spacing`, or Latin poster settings such as `.8`, `.85`, or `.9`.
+- English serif/display title selectors using `line-height < 1.02`, or `< 1.06` when the title can wrap beyond one line.
+- Any display title using `line-height < 0.95` while body text, cards, dividers, or frames are below it.
+- `.body-note`, `.cards`, `.decision-grid`, `.two-column`, or similar content blocks using independent absolute `top` values with no `layout_box_budget` or chained zone rule.
+- Cards, panels, grids, or frames appearing later in the DOM where their zone intersects earlier title/body zones.
 - visible placeholder language or blank boxes such as `drop image here`, plus-sign empty frames, or meaningless right-side image areas.
 - reference-subject redraws such as animal/person/character/object silhouettes, eyes, ears, tails, paws, fins, horns, wings, mascot faces, or product/object outlines derived from style references.
 - navigation controls positioned over body/card/footer zones.
@@ -234,5 +261,6 @@ Check the HTML/CSS source for obvious mechanical failures:
 - `overflow: hidden` used on text containers to mask missing capacity instead of revising copy, layout, or page count.
 - missing `visual_subject_policy` when reference images included identifiable subjects.
 - missing `mechanical_layout_preflight` for slides with multiple major elements.
+- missing `layout_box_budget` for slides with multiple major elements.
 
-These checks do not require browser screenshots and must not reintroduce the removed screenshot-review-and-revision flow.
+These checks do not require browser screenshots and must not reintroduce the removed screenshot-review-and-revision flow. Do not look for `playwright`, `playwright-core`, bundled Node module paths, or browser runtimes unless the user explicitly requests browser QA.

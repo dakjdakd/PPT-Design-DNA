@@ -236,7 +236,7 @@ Free layouts are encouraged; unbudgeted layouts are not.
 
 Mechanical Layout Preflight is required before HTML authoring for every slide with more than one major element. It is a blocking source-level gate, not a final-report checklist.
 
-Each slide must include:
+Each slide must include `mechanical_layout_preflight` and a numeric `layout_box_budget`:
 
 ```json
 {
@@ -264,6 +264,39 @@ Each slide must include:
       ["card_zone", "nav_safe_zone"]
     ],
     "if_fail": "recompose_or_split_slide"
+  },
+  "layout_box_budget": {
+    "stage": { "w": 1920, "h": 1080 },
+    "zones": [
+      {
+        "id": "title",
+        "x": 110,
+        "y": 140,
+        "w": 980,
+        "allocated_h": 310,
+        "text": "Speed only matters if the control points are visible.",
+        "font_family_role": "display_serif",
+        "font_size": 100,
+        "line_height": 1.06,
+        "estimated_lines": 3,
+        "glyph_pad_top": 18,
+        "glyph_pad_bottom": 32,
+        "visual_effect_pad": 0,
+        "required_h": 368,
+        "fit": "fail"
+      }
+    ],
+    "derived_zone_rules": [
+      "body_zone.y >= title_zone.y + title_zone.required_h + 44",
+      "card_zone.y >= max(planned_card_y, body_zone.y + body_zone.required_h + 56)"
+    ],
+    "collision_pairs": [
+      ["title_zone", "body_zone"],
+      ["title_zone", "card_zone"],
+      ["body_zone", "card_zone"],
+      ["card_zone", "nav_safe_zone"]
+    ],
+    "if_fail": "lower_title_size_or_move_next_zone_or_split_slide"
   }
 }
 ```
@@ -271,6 +304,12 @@ Each slide must include:
 Rules:
 
 - Estimate text boxes from available width, script, font size, line-height, expected line count, and visual-effect padding before writing positioned HTML.
+- `layout_box_budget.zones[].required_h` must equal `estimated_lines * font_size * line_height + glyph_pad_top + glyph_pad_bottom + visual_effect_pad`.
+- Large serif/display titles and titles with English descenders such as `g`, `y`, `p`, `q`, or `j` require `glyph_pad_bottom` before the next content block.
+- The next readable zone must begin after the previous zone's calculated bottom plus `min_gap`; do not use independent absolute `top` guesses for cards, body notes, dividers, or footers.
+- Main content elements should use chained zone positioning: title height is calculated first, body starts from title bottom, cards start from body bottom, and nav safe zone is reserved before footer/cards.
+- All major content elements should carry a stable `data-zone` or equivalent class-to-zone mapping so source-level checks can pair HTML elements with `layout_box_budget` zones.
+- DOM order is not a layout safety mechanism. Later cards, panels, or grids must not cover earlier title/body text. Do not use `z-index` to float text above collided cards.
 - CJK headings require safe line-height and `letter-spacing: 0`.
 - Stroked, shadowed, glowing, or duplicate-offset display type requires extra reserved height.
 - Card capacity includes padding, badges, labels, captions, and internal gaps.
@@ -290,6 +329,10 @@ Capacity rules:
 | `single_big_claim` | one dominant claim plus at most one supporting block | convert to `three_point_argument` or split |
 | `three_point_argument` | up to three primary cards/points after a safe title zone | use timeline/matrix or split |
 | `stat_grid` | up to four stat cards, each with explicit surface/ink pair and padding | split or use `data_hero` |
+| `hero_statement_card_grid_4` | title 42-48 English characters, note 90-120 characters, four cards with 18-24 English words each | shorten copy, use 2x2, or split |
+| `two_column_evidence` | top title max two lines before columns start | move columns down or split into two evidence slides |
+| `risk_and_controls` | big title + note + three cards only when title fits two lines | remove/move note, reduce title, or split |
+| `four_step_cards` | four cards with one title and 22-26 English words per card | use 2x2, reduce copy, or split |
 | `split_text_visual` | one meaningful visual role with protected text area | remove unrelated visual or convert to diagram |
 | `closing_takeaway` | one final takeaway plus optional action row/card zone | separate action plan into another slide |
 
@@ -410,7 +453,7 @@ Baseline rules at 1920x1080:
 
 | Text role | Font size range | Line-height | Minimum gap after block |
 |---|---:|---:|---:|
-| huge display title | 132-220px | 0.92-1.04 | 44-72px |
+| huge display title | 132-220px | 1.02-1.08 when multiline; 0.95+ only for single-line poster use | 44-72px |
 | CJK huge display title | 132-220px | 0.98-1.10 | 48-76px |
 | outlined / shadowed title | 96-180px | 1.02-1.14 | 56-88px |
 | section title | 72-120px | 1.05-1.16 | 34-56px |
@@ -420,6 +463,11 @@ Baseline rules at 1920x1080:
 
 Rules:
 
+- Large English serif display titles default to `line-height >= 1.02`.
+- If a large English serif/display title wraps beyond one line, use `line-height >= 1.06`.
+- If the title contains descenders such as `g`, `y`, `p`, `q`, or `j`, add `descender_pad` / `glyph_pad_bottom` of `0.18em-0.28em` in the zone budget before placing the next block.
+- `line-height < 0.95` is allowed only for a single-line decorative/poster title with no body text, divider, card, or frame directly below it.
+- Multi-line body and card copy default to `line-height >= 1.28`; reading-first paragraphs should use a looser value.
 - Never use `line-height < 0.98` for Chinese display text.
 - Never use `line-height < 1.02` when text has stroke, thick shadow, glow, duplicate offset layers, or cartoon/pop treatment.
 - If a display title has `-webkit-text-stroke`, `text-shadow`, `filter`, or layered duplicate text, add extra reserved block padding of 16-36px.
@@ -578,3 +626,5 @@ Before final handoff:
 - verify all text/surface pairs are readable
 - verify decorative/media layers do not cover text at rest
 - end at the requested generated artifact; no post-generation browser QA stage is part of the V3 default flow
+- do not probe for Playwright, `playwright-core`, browser runtimes, bundled Node module paths, or browser automation dependencies in the default flow
+- if browser QA is explicitly requested but unavailable, skip it and report that it was skipped; do not install dependencies or turn dependency debugging into part of deck generation

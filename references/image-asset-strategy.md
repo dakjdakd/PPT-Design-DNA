@@ -41,7 +41,7 @@ Ask image-intent questions only after:
 
 1. Design DNA exists
 2. the Design DNA panel has been accepted or tuned
-3. the profile has been saved or selected
+3. the active Design DNA candidate is accepted, or a saved profile/adapter has been selected
 4. PPT requirements are being collected
 
 Do not ask image-intent questions during Design Intake unless the user explicitly says an image should appear in the slides.

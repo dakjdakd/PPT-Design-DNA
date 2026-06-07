@@ -1,6 +1,6 @@
 # V3 Profile Management
 
-V3 turns Design DNA from a one-time generation result into a reusable design asset, then lets that asset travel into different scenarios through adapters.
+V3 can turn Design DNA from a one-time generation result into a reusable design asset, then lets that asset travel into different scenarios through adapters. This is opt-in. Creating a deck from fresh references or discovery must not automatically create a saved profile.
 
 Active V3 scope:
 
@@ -57,6 +57,29 @@ Logical separation:
 - `diffs/*.md`: optional human-readable version changes, only when the user asks
 
 Do not create `exports/`, `usage-log.json`, copied reference images, thumbnails, or long reports by default. See [Output Contract](output-contract.md) for required vs optional assets.
+
+Do not create the `design-profiles/` folder at all for a normal one-off deck unless the user explicitly asks to save or manage a reusable profile. During deck generation, the active Design DNA candidate can live only in the current reasoning context and the deck manifest.
+
+## Save Policy
+
+Default deck generation policy:
+
+- Do not save new Design Profiles by default.
+- Do not update existing profile metadata by default just because a profile was used.
+- Do not append usage history by default.
+- Do not create version snapshots for every generated deck.
+- Ask or offer profile saving only after the user has seen the generated deck, unless the user asked to save earlier.
+
+Save only when the user explicitly asks:
+
+- "save this style"
+- "save this as a profile"
+- "save this Design DNA"
+- "保存这个风格"
+- "保存为 Design Profile"
+- "以后还要复用这个设计"
+
+When the user approves saving after review, promote the active Design DNA candidate into `design-profiles/<profile-id>/` as `v001`, or create a new immutable version if it came from an existing saved profile and was tuned.
 
 ## Profile Index
 
@@ -316,7 +339,7 @@ Do not edit the exported prompt as if it were the source profile. To change the 
 
 Usage history is optional and not required to reproduce a Design Profile.
 
-By default, update compact usage pointers only:
+If the user has opted into profile tracking, update compact usage pointers only:
 
 - `last_used_at`
 - `last_output_path`
@@ -340,7 +363,7 @@ Create `usage-log.json` only when the user asks for detailed history or when a p
 }
 ```
 
-When finalizing a deck, update compact usage pointers if a Design Profile or adapter was used. Append a detailed usage entry only if `usage-log.json` already exists or the user requested detailed history.
+When finalizing a deck, do not mutate `design-profiles/` by default. Record the selected profile/adapter id in `outputs/<deck-slug>/deck-manifest.json` instead. Update compact usage pointers only when the user explicitly wants profile usage tracking. Append a detailed usage entry only if `usage-log.json` already exists and the user wants to keep detailed history, or if the user requested detailed history for this project.
 
 ## Profile Commands
 
@@ -360,26 +383,28 @@ Avoid destructive actions. If the user asks to delete a profile, prefer archivin
 
 ## Interaction Orders
 
-Creating a new profile from images:
+Creating a one-off deck from images:
 
 ```text
 reference images
 -> extraction
 -> Design DNA parameter panel
 -> user confirm/tune
--> save profile v001
--> ask whether to create a deck now
+-> use as unsaved active Design DNA candidate
+-> create deck
+-> after user review, optionally save profile v001 only if approved
 ```
 
-Creating a new profile without images:
+Creating a one-off deck without images:
 
 ```text
 Design Discovery
 -> choose/mix DNA direction
 -> Design DNA parameter panel
 -> user confirm/tune
--> save profile v001
--> ask whether to create a deck now
+-> use as unsaved active Design DNA candidate
+-> create deck
+-> after user review, optionally save profile v001 only if approved
 ```
 
 Using an existing profile:

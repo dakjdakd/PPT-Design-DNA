@@ -189,9 +189,61 @@ Rules:
 - Missing roles do not need fake zones. A slide without content images should not create a fake image zone.
 - `title_zone` must include the full visible title height, including line-height, descenders, stroke, shadow, glow, and offset layers.
 - `body_zone` and `card_zone` must begin after the title stack's visible clearance unless the design intentionally separates them into a different column with safe distance.
+- `title_zone`, `body_zone`, `card_zone`, `footer_zone`, and `nav_safe_zone` are content layers. They cannot overlap each other after padding, descender clearance, card padding, and navigation reservation are counted.
+- Do not rely on DOM order to cover a bad fit. A later card, panel, grid, or frame must not paint over earlier title/body text.
+- Do not repair content collisions by giving the hidden text a higher `z-index`; revise the budget, move the next zone, reduce copy, reduce title size, change archetype, or split the slide.
 - `visual_zone` must be meaningful: evidence, diagram, metaphorical anchor, approved/generated image, or rhythmic device. Otherwise remove it.
 - `nav_safe_zone` must be reserved before cards, captions, and footer are placed.
 - If a free composition cannot satisfy the budget, generate a different composition rather than forcing a template.
+
+## Layout Box Budget
+
+Every multi-element slide must include `layout_box_budget` before HTML authoring. This is the numeric version of the visual safety check.
+
+Required fields:
+
+```json
+{
+  "layout_box_budget": {
+    "stage": { "w": 1920, "h": 1080 },
+    "zones": [
+      {
+        "id": "title",
+        "x": 110,
+        "y": 140,
+        "w": 980,
+        "allocated_h": 310,
+        "font_size": 100,
+        "line_height": 1.06,
+        "estimated_lines": 3,
+        "glyph_pad_top": 18,
+        "glyph_pad_bottom": 32,
+        "visual_effect_pad": 0,
+        "required_h": 368,
+        "fit": "pass | fail"
+      }
+    ],
+    "derived_zone_rules": [
+      "body_zone.y >= title_zone.y + title_zone.required_h + 44",
+      "card_zone.y >= max(planned_card_y, body_zone.y + body_zone.required_h + 56)"
+    ],
+    "collision_pairs": [
+      ["title_zone", "body_zone"],
+      ["title_zone", "card_zone"],
+      ["body_zone", "card_zone"],
+      ["card_zone", "nav_safe_zone"]
+    ],
+    "if_fail": "lower_title_size_or_move_next_zone_or_split_slide"
+  }
+}
+```
+
+Rules:
+
+- `required_h` must be calculated as `estimated_lines * font_size * line_height + glyph_pad_top + glyph_pad_bottom + visual_effect_pad`.
+- English serif/display titles and titles with descenders such as `g`, `y`, `p`, `q`, or `j` require `glyph_pad_bottom`.
+- The next readable zone must start after the previous readable zone's calculated bottom plus the declared gap.
+- Fixed absolute `top` values are allowed only when they satisfy the chained budget. A card grid cannot have a hard top that ignores the actual title/body height.
 
 ## Mechanical Layout Preflight
 
@@ -200,6 +252,7 @@ Use Mechanical Layout Preflight before HTML authoring for every slide with more 
 Required checks:
 
 - estimate text box height from available width, font size, line-height, expected line count, script, and visual-effect padding
+- verify `layout_box_budget` required heights and derived zone rules
 - include CJK glyph height, English descenders, stroke, glow, shadow, and duplicate-offset layers in title-zone height
 - include card padding, badges, labels, captions, and internal gaps in card capacity
 - reserve navigation safe zone before placing bottom cards, captions, footers, progress bars, or page counters
@@ -222,6 +275,9 @@ Text-to-text collisions are blocking failures, even when no boxes overlap in CSS
 Hard rules:
 
 - A display title may be tight, but its glyphs cannot touch the next title line, subtitle, divider, body paragraph, badge, or caption.
+- Large English serif display titles default to `line-height >= 1.02`; if they wrap to more than one line, use `line-height >= 1.06`.
+- `line-height < 0.95` is allowed only for a single-line decorative title with no body text, divider, card, or frame directly below it.
+- Multi-line body and card copy default to `line-height >= 1.28`; reduce copy or split slides instead of compressing line-height.
 - Chinese display headings need more line-height than Latin-only headings at the same size. Do not use very tight Latin poster settings for CJK.
 - CJK display headings use `letter-spacing: 0`; negative tracking is a blocking failure when it causes visual collision.
 - Do not use `line-height: .8`, `.85`, or `.9` for CJK display headings. A Latin poster setting must not be copied into Chinese title pages.
@@ -298,7 +354,8 @@ Use these source-level corrections:
 | reference subject redrawn | remove subject-derived visual; replace with typography, abstract material shape, diagram, texture, pattern, or whitespace |
 | empty image placeholder | replace with typographic visual, diagram, or whitespace |
 | low text contrast | change text/surface pair, add plate, or move text |
-| object covers text | update z-index and collision zones; move or crop object |
+| decorative/media object covers text | move or crop object, lower opacity, add exclusion zone, or adjust decorative/media z-index below content |
+| content layer covers another content layer | revise `layout_box_budget`, move the next zone, reduce copy/title size, change archetype, or split slide; do not fix with z-index |
 | card text unreadable | switch card variant to valid surface pair |
 | pale card inherits white text | assign explicit dark ink token to the card and its descendants |
 | title zone underestimated | increase title zone, reserve visual-effect padding, split title, or reduce title size by 5-12% |

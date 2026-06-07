@@ -20,7 +20,7 @@ Adapters are derived assets. The base profile remains the source; the adapter re
 
 ## When To Use
 
-Use the adapter after the profile is accepted/saved and after PPT requirements are known.
+Use the adapter after an active Design DNA candidate is accepted or a saved profile/adapter is selected, and after PPT requirements are known. Creating an adapter as a saved reusable asset requires explicit user approval; otherwise adapter decisions remain transient for the current deck.
 
 Do not adapt before the user passes the Design DNA Panel Gate. Do not ask presentation task questions before the panel gate just to decide an adapter.
 

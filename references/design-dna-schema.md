@@ -7,9 +7,10 @@ V3 uses a layered schema. The user sees a simple control panel and profile libra
 ```json
 {
   "version": "3.0",
-  "profile_id": "my-design-profile-01",
+  "persistence_state": "unsaved_candidate | saved_profile | saved_adapter",
+  "profile_id": "my-design-profile-01 | null",
   "profile_name": "Cyber Minimal Editorial",
-  "current_profile_version": "v001",
+  "current_profile_version": "v001 | null",
   "source": {},
   "discovery": {},
   "user_dna": {},
@@ -25,7 +26,28 @@ V3 uses a layered schema. The user sees a simple control panel and profile libra
 }
 ```
 
-For saved profiles, `profile_metadata` and `versioning` are required. `compact_usage` is optional. `discovery` is required when the profile came from no-image Design Discovery. `adapters` is required only when scenario variants are created.
+For unsaved active Design DNA candidates, `profile_id`, `current_profile_version`, `profile_metadata`, `versioning`, `compact_usage`, and `adapters` may be absent or null. The candidate is valid for generating the current deck after the Design DNA Panel is accepted.
+
+For saved profiles, `profile_metadata` and `versioning` are required. `compact_usage` is optional and must not be updated by default during one-off deck generation. `discovery` is required when the profile came from no-image Design Discovery. `adapters` is required only when scenario variants are created.
+
+## Unsaved Active Candidate
+
+The default result of extraction/discovery is an unsaved active candidate, not a saved profile.
+
+Required for deck generation:
+
+- `version`
+- `persistence_state: "unsaved_candidate"`
+- `source` or `discovery`
+- `user_dna`
+- `execution_dna`
+- `tokens`
+- reference subject firewall policy when the candidate came from images
+- `negative_constraints`
+- `design_prompt`
+- `quality_constraints`
+
+Do not write this candidate to `design-profiles/` by default. If the user approves saving after reviewing the generated deck, promote the candidate into a saved profile by assigning `profile_id`, `profile_name`, `current_profile_version`, `profile_metadata`, and `versioning`.
 
 ## Minimal Reproducible Profile
 
@@ -487,6 +509,20 @@ Example:
       "reserve_nav_safe_zone": true,
       "check_collision_pairs": true,
       "if_fail": "recompose_reduce_copy_reduce_title_or_split_slide"
+    },
+    "layout_box_budget": {
+      "required_before_html": true,
+      "required_height_formula": "estimated_lines * font_size * line_height + glyph_pad_top + glyph_pad_bottom + visual_effect_pad",
+      "chain_readable_zones": true,
+      "forbid_independent_absolute_top_for_content": true,
+      "forbid_dom_order_overlap_fix": true,
+      "forbid_z_index_collision_fix": true,
+      "display_serif_line_height_min": 1.02,
+      "display_serif_multiline_line_height_min": 1.06,
+      "display_title_single_line_decorative_floor": 0.95,
+      "body_and_card_multiline_line_height_min": 1.28,
+      "descender_pad_em": "0.18-0.28",
+      "if_fail": "lower_title_size_or_move_next_zone_or_split_slide"
     },
     "motion_rules": {
       "max_motion_intensity": 45,

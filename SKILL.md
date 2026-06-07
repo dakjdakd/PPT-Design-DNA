@@ -27,7 +27,7 @@ Profile library check: targeted read of canonical Design Profile index when rele
 -> Design DNA
 -> mandatory Design DNA parameter panel
 -> user tuning
--> saved/versioned Design Profile
+-> active Design DNA candidate, with optional user-approved save as a versioned Design Profile
 -> PPT requirement discovery
 -> content image intent and asset strategy
 -> design-scenario fit check
@@ -89,13 +89,13 @@ V3 has strict gates:
 1. **Design Source Gate**: ensure explicit reference images, a saved profile/adapter, or no-image Design Discovery choices exist.
    - Apply the Reference Subject Firewall at this gate. Record allowed style traits separately from forbidden subject matter before extracting Design DNA.
 2. **Design DNA Panel Gate**: after extraction/discovery, show the parameter panel and stop for user confirmation/tuning. Do not ask page count, audience, purpose, content source, or export before this gate.
-3. **Profile Asset Gate**: after confirmation/tuning, save or update a Design Profile before generation. Tuning creates a new version; do not overwrite.
-4. **PPT Requirement Gate**: only after the user accepts/saves/tunes the profile, ask topic, audience, page count, content source, purpose, density, narrative style, and output needs.
+3. **Active DNA Gate**: after confirmation/tuning, use the result as an active Design DNA candidate for this deck. Do not save or update `design-profiles/` by default.
+4. **PPT Requirement Gate**: only after the user accepts/tunes the active Design DNA or selects a saved profile/adapter, ask topic, audience, page count, content source, purpose, density, narrative style, and output needs.
 5. **Image Asset Gate**: after PPT requirements, ask whether the deck needs content images, AI-generated images, replaceable image slots, no images, or mixed handling. Do not treat earlier reference images as content images.
 6. **Adapter Gate**: after requirements are known, detect scenario conflicts and offer visual-first, dynamic-downgrade, or cell-division handling when needed.
-7. **Generation Handoff Gate**: after HTML/PPTX generation, deliver the requested artifact and report only concise paths, profile/version, and any known limitations.
+7. **Generation Handoff Gate**: after HTML/PPTX generation, deliver the requested artifact and report only concise paths, active Design DNA summary, saved profile/version only if applicable, and any known limitations.
 
-If the user replies "default" at the Design DNA Panel Gate, treat it as accepting the extracted/discovered DNA, save/use the profile, then proceed to PPT Requirement Discovery.
+If the user replies "default" at the Design DNA Panel Gate, treat it as accepting the extracted/discovered DNA for this deck, then proceed to PPT Requirement Discovery. Do not save a new Design Profile unless the user explicitly chooses a save option.
 
 For profile-management requests, do not ask for reference images, deck topic, audience, or page count. Use [Profile Management](references/profile-management.md).
 
@@ -129,18 +129,20 @@ For profile-management requests, do not ask for reference images, deck topic, au
    - If tuning creates contradiction, warn and offer choices.
    - Tuning a saved profile creates a new immutable version.
 
-5. **Save Design Profile**
-   - Save the minimal reproducible Design Profile: profile identity, source/discovery summary, current version pointer, Design DNA snapshot, design tokens, reference-subject firewall policy, negative constraints, and derived prompt.
-   - Do not save bulky management artifacts by default. Usage history, prompt exports, source image copies, and human-readable reports are optional.
+5. **Active Design DNA Candidate And Optional Profile Save**
+   - Keep the confirmed/tuned Design DNA as the active candidate for the current deck.
+   - Do not create `design-profiles/`, `profile.json`, version snapshots, diffs, or usage records by default.
+   - Save a reusable Design Profile only when the user explicitly asks before generation or after reviewing the generated deck.
+   - When saving is requested, save the minimal reproducible Design Profile: profile identity, source/discovery summary, current version pointer, Design DNA snapshot, design tokens, reference-subject firewall policy, negative constraints, and derived prompt.
    - Design Prompt is a derived export, not the source of truth.
    - See [Profile Management](references/profile-management.md).
 
 6. **PPT Requirement Discovery**
    - Ask topic, goal, audience, content source, page count, density, narrative style, image intent, and output/export needs as option-first choices.
-   - Ask only after the profile is accepted/saved.
+   - Ask only after the active Design DNA is accepted/tuned, or after a saved profile/adapter is selected.
    - Adapt questions to the Design DNA and scenario.
    - Do not present blank fill-in fields such as `topic: ____`; provide A/B/C/D options plus an "Other/custom" escape hatch.
-   - After a Design Profile is saved, the next assistant response must be a guided choice panel, not a free-form intake form.
+   - After the active Design DNA is accepted, the next assistant response must be a guided choice panel, not a free-form intake form.
    - Never say "直接回复一行：主题..., 6页..., 给谁看..." as the primary requirement collection method. Compact answers such as `1A 2C 3B` are allowed only after showing options.
 
 7. **Image Asset Strategy**
@@ -176,7 +178,7 @@ For profile-management requests, do not ask for reference images, deck topic, au
    - Generate a structured spec for every slide before rendering.
    - Include purpose, core message, layout archetype, zones, word limits, visual constraints, required elements, forbidden elements, and quality targets.
    - Include image strategy fields for each slide when relevant: asset role, slot type, ratio, fit, safe area, caption, and fallback.
-   - Include `visual_subject_policy` and `mechanical_layout_preflight` for every slide with reference-derived visuals or more than one major element.
+   - Include `visual_subject_policy`, `mechanical_layout_preflight`, and `layout_box_budget` for every slide with reference-derived visuals or more than one major element.
    - Do not generate slides from one loose prompt.
 
 12. **HTML Deck Generation**
@@ -186,15 +188,16 @@ For profile-management requests, do not ask for reference images, deck topic, au
     - Enforce design tokens, density gates, layout archetypes, safe margins, and minimum font sizes.
     - Enforce visual safety: no generic empty image slots, no unreadable text/surface pairs, no decorative layers covering content, and no unreserved navigation overlap.
     - Enforce the Reference Subject Firewall: CSS/SVG/HTML visuals can express style, but cannot depict subjects or subject parts from style reference images.
-    - Enforce Mechanical Layout Preflight before writing HTML for each slide: estimate text fit, reserve visual-effect padding, reserve navigation safe zones, and check zone collisions. If the preflight fails, recompose, reduce copy, reduce title size slightly, or split the slide before generating.
+    - Enforce Mechanical Layout Preflight and `layout_box_budget` before writing HTML for each slide: estimate text fit, reserve visual-effect/descender padding, reserve navigation safe zones, and check zone collisions. If either gate fails, recompose, reduce copy, reduce title size slightly, move the next zone, change layout, or split the slide before generating.
     - Use purposeful motion derived from Design DNA; avoid one generic animation recipe for every slide.
     - Do not use reference images as slide assets unless explicitly approved as content.
     - See [HTML Generation Rules](references/html-generation-rules.md) and [Visual Safety Rules](references/visual-safety-rules.md).
 
 13. **Final Handoff**
     - Deliver the requested HTML deck and optional PDF/PPTX export.
-    - Keep final output concise: artifact path, Design Profile/version, adapter strategy if used, and known limitations.
+    - Keep final output concise: artifact path, active Design DNA summary, saved Design Profile/version only if one was selected or explicitly saved, adapter strategy if used, and known limitations.
     - End at the generated artifact; this V3 flow does not include a post-generation browser QA stage.
+    - Do not look for, install, import, or run Playwright/browser automation in the default flow. If browser QA is unavailable or unrequested, complete source-level checks only and do not mention dependency probing as a workflow step.
     - See [Quality Rubric](references/quality-rubric.md) for pre-generation and source-level quality constraints.
 
 ## Design Lessons To Reuse
@@ -243,7 +246,10 @@ Surface Pair, Zone Budget, and Layout Capacity are P0 mechanical constraints, no
 - Zones use the fixed 1920x1080 stage coordinate system only for collision reasoning. They must come from the slide's unique composition and must not force repeated layouts.
 - Main text zones cannot intersect visual, decoration, footer, navigation, or no-text zones. If there is no room, change layout, split the slide, reduce card count, compress copy, or lower decorative weight.
 - Layout Capacity is a freedom-preserving capacity check, not a template rule. It says what a page type can safely carry; it does not dictate where everything must go.
-- Mechanical Layout Preflight is required before HTML authoring. Estimate text boxes, CJK line-height, stroke/shadow/offset expansion, card padding, and nav safe-zone occupancy. A failed estimate must trigger recomposition or slide splitting, not hidden overflow.
+- Mechanical Layout Preflight plus `layout_box_budget` is required before HTML authoring. Estimate text boxes, CJK line-height, English descenders, stroke/shadow/offset expansion, card padding, and nav safe-zone occupancy. A failed estimate must trigger recomposition or slide splitting, not hidden overflow.
+- `layout_box_budget` must calculate each readable zone's required height before placing the next zone. Do not place body notes, cards, dividers, footers, or navigation with independent absolute `top` guesses that ignore title/body height.
+- Large English serif display titles use `line-height >= 1.02`; if they wrap beyond one line, use `line-height >= 1.06` and reserve descender padding for `g/y/p/q/j`. `line-height < 0.95` is allowed only for a single-line decorative title with no content directly below.
+- DOM order is not a collision fix. Later cards, grids, panels, or frames must not paint over earlier title/body text, and `z-index` must not be used to hide a failed content layout.
 
 ## Option-First Requirement Collection
 
@@ -251,7 +257,7 @@ When entering PPT Requirement Discovery, always ask with numbered A/B/C/D choice
 
 Required behavior:
 
-- Start with a short confirmation that the Design Profile is saved or selected.
+- Start with a short confirmation that the active Design DNA is accepted, or that a saved Design Profile/adapter is selected.
 - Then show 6-9 numbered questions with choices.
 - Include `Other / custom` where the answer space is naturally open.
 - Tell the user they can reply compactly, for example `1A 2E 3C 4B 5A 6D`.
@@ -268,7 +274,7 @@ Forbidden behavior:
 Standard Chinese panel:
 
 ```text
-已保存 Design Profile：<profile-path-or-name>
+Design DNA：<dna-name>（当前仅用于本次 PPT；满意后可保存为 Design Profile）
 现在进入 PPT 需求阶段。请直接回复选项编号即可，例如：1A 2E 3B 4C 5A 6D 7B 8A。
 
 1. PPT 主题？
@@ -353,8 +359,8 @@ When producing a deck, provide:
 
 - final HTML deck path
 - concise Design DNA summary
-- reusable Design Profile path if saved
-- current profile or adapter version
+- reusable Design Profile path only if saved or selected
+- current profile or adapter version only if applicable
 - adapter/fit strategy if used
 - optional PDF/PPTX export path only if requested
 - unresolved limitations or manual edits, if any
@@ -372,6 +378,7 @@ When only discussing the skill design, do not generate PPT files unless the user
 - Do not skip the Design DNA parameter panel.
 - Do not ask PPT task questions before the user accepts or tunes Design DNA.
 - Do not overwrite a saved profile version; create a new version and Design Diff.
+- Do not save new Design Profiles by default. Promote an active Design DNA candidate into `design-profiles/` only after explicit user approval.
 - Do not save generated user decks, profiles, or outputs inside the skill source/installation directory. Use the current user project root and the hard output contract.
 - Do not treat Design Prompt as source of truth; it is derived from Design DNA.
 - Do not treat Design Adapter as source of truth; it is a derived scenario variant.
@@ -389,4 +396,5 @@ When only discussing the skill design, do not generate PPT files unless the user
 - Do not place text on a surface unless the text/surface pair passes contrast rules.
 - Do not let decorative, media, background type, or motion layers cover content at rest.
 - Do not add a post-generation browser QA stage to the default flow.
+- Do not probe for Playwright, install Playwright, add Node module directories for Playwright, or run browser automation unless the user explicitly asks for browser QA.
 - Do not allow title lines, subtitles, dividers, or body text to visually touch or squeeze each other. Tight editorial typography is allowed only when glyphs remain clearly separated and body text remains readable.

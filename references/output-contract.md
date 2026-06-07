@@ -1,8 +1,8 @@
 # Output Contract
 
-Use this contract whenever creating, reusing, or generating from Design Profiles.
+Use this contract whenever creating decks, optionally saving reusable Design Profiles, or generating from saved Design Profiles.
 
-The goal is **minimal reproducible assets**, not a bulky management archive.
+The goal is **minimal reproducible assets**, not a bulky management archive. A normal one-off deck must not create or mutate `design-profiles/` unless the user explicitly approves saving a reusable profile.
 
 ## Artifact Root
 
@@ -11,6 +11,8 @@ Use the current user project root as the artifact root.
 Never save user-generated profiles, decks, media, or exports into the skill source or skill installation directory. A skill directory contains instructions only.
 
 ## Hard Directory Layout
+
+For a normal deck generation, create only the `outputs/<deck-slug>/` branch that is needed for the requested artifact. Create the `design-profiles/` branch only when the user explicitly saves or manages reusable profiles.
 
 ```text
 project-root/
@@ -48,6 +50,7 @@ project-root/
 
 Only create folders when needed:
 
+- Create `design-profiles/` only when the user explicitly saves or manages a reusable profile.
 - Create `assets/` only when user-approved content images, generated images, fonts, or media are used.
 - Create `exports/` only when PDF/PPTX is requested.
 - Create `specs/` only when the user asks to inspect, edit, audit, or regenerate from internal specs.
@@ -56,7 +59,7 @@ Only create folders when needed:
 
 ## Required Profile Assets
 
-These are required because they reproduce a saved Design Profile:
+These are required only after the user explicitly saves a reusable Design Profile:
 
 - `design-profiles/profile-index.json`
 - `design-profiles/<profile-id>/profile.json`
@@ -82,7 +85,7 @@ Do not create these by default:
 
 Create optional assets only when the user asks for them or when they are necessary for a specific workflow.
 
-Usage history is not required to reproduce a style. By default, update only compact fields such as `last_used_at` and `last_output_path` in `profile-index.json` or `profile.json`.
+Usage history is not required to reproduce a style. Do not update `last_used_at`, `last_output_path`, or any other `design-profiles/` file during normal deck generation unless the user explicitly wants profile tracking or has asked to save/manage the profile.
 
 ## Required Deck Assets
 
@@ -95,7 +98,8 @@ For every generated deck, save:
 
 - deck title
 - created time
-- profile id and version
+- active Design DNA summary
+- profile id and version only if a saved profile/adapter was selected or explicitly saved
 - adapter id and version, if used
 - output files
 - approved content image ids and paths, if any
@@ -126,7 +130,17 @@ outputs/<deck-slug>/specs/
 
 Reference images used for style extraction are evidence, not deck assets.
 
-By default, store only source metadata in the profile version snapshot:
+If the user has not saved a reusable profile, do not create a profile version snapshot. Store only compact source/style metadata in `deck-manifest.json` when useful for deck traceability:
+
+- source id
+- description
+- role: `style_reference` or `content_asset`
+- original path or user-provided label when available
+- extraction weight
+- allowed style traits
+- forbidden subject matter
+
+When a reusable profile is explicitly saved, store only source metadata in the profile version snapshot:
 
 - source id
 - description
@@ -155,9 +169,12 @@ assets/images/07-proof-chart.png
 Mention only:
 
 - final HTML path
-- profile id/version
+- active Design DNA summary
+- profile id/version only if saved or selected
 - adapter id/version and strategy, if used
 - optional PDF/PPTX paths
 - known limitations
+
+After the user has reviewed the deck, it is acceptable to ask whether they want to save the current active Design DNA as a reusable profile. Do not save it preemptively.
 
 Do not list internal specs or optional profile files unless the user asks.

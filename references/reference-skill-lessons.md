@@ -70,6 +70,7 @@ What not to copy:
 - Do not make preset visual recipes the core.
 - Do not ignore export needs if the user needs PPTX.
 - Do not let bold visual templates override user-uploaded Design DNA.
+- Do not copy default Playwright/browser screenshot QA into PPT-Design-DNA. Browser QA is optional only when explicitly requested and already available; source-level mechanical preflight is the default.
 
 ## PPT-Design-DNA Adaptation
 
@@ -165,13 +166,18 @@ Use this source-level gate:
 ```text
 Before HTML:
 -> estimate title/body/card text height
+-> calculate layout_box_budget required heights
+-> chain body/card/footer positions from prior readable zone bottoms
 -> reserve stroke/shadow/offset padding
+-> reserve English descender padding for large serif headings
 -> reserve navigation safe zone
 -> check title/card/body/visual/footer/nav collision pairs
 -> if any fail: recompose, reduce copy, reduce title size slightly, change archetype, or split slide
 ```
 
 Do not use `overflow: hidden` on text containers as a fix. It hides the failure instead of solving it.
+
+Borrow from Frontend Slides: fixed 1920x1080 stage, density-based splitting, and the lesson that simple existence checks are not enough; panels can visually cover text even when classes, pages, and manifests look valid. Borrow from Guizang: preflight the chosen layout before writing content. Do not copy either skill's template-first model.
 
 ## Quality Principle
 

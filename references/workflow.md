@@ -1,8 +1,8 @@
 # Core Workflow
 
-V3 is a complete Design DNA loop. It can create a deck from reference images, a saved profile, or no-image Design Discovery, but deck generation never starts until the Design DNA panel is accepted and saved as a reusable profile.
+V3 is a complete Design DNA loop. It can create a deck from reference images, a saved profile, or no-image Design Discovery, but deck generation starts from an accepted active Design DNA candidate. Saving that candidate as a reusable Design Profile is optional and requires explicit user approval.
 
-V3 is HTML-first and profile-library-first. The deck is authored as fixed-stage animated HTML, then optionally exported to PDF/PPTX only if the user asks.
+V3 is HTML-first and Design-DNA-first. The profile library is useful for reuse, but it must not become an automatic archive for every generation. The deck is authored as fixed-stage animated HTML, then optionally exported to PDF/PPTX only if the user asks.
 
 Before asking for new reference images, check whether the user is likely trying to reuse an existing Design DNA. If the current project has `design-profiles/profile-index.json`, read that one file and offer saved profiles/adapters as possible design sources. Do not recursively scan the workspace.
 
@@ -17,7 +17,7 @@ The order is strict:
    C. no-image Design Discovery choices
 2. Extract or generate Design DNA
 3. Show the Design DNA parameter panel
-4. User confirms/tunes/saves the profile as a versioned asset
+4. User confirms/tunes the active Design DNA candidate; optionally saves it as a versioned asset only by explicit choice
 5. Ask PPT task questions: topic, audience, page count, content source, purpose, output
 6. Ask content image intent and plan Image Asset Strategy
 7. Check design-scenario fit
@@ -32,7 +32,22 @@ The order is strict:
 
 Do not ask "topic / audience / page count / purpose / content source / PPTX export" before step 4. Those questions belong to PPT Requirement Discovery, not Design Intake.
 
-Do not ask how slide images should appear before step 5 unless the user explicitly says a provided image is slide content. Image intent is not Design Intake; it is a deck-planning choice after the profile exists.
+Do not ask how slide images should appear before step 5 unless the user explicitly says a provided image is slide content. Image intent is not Design Intake; it is a deck-planning choice after the active Design DNA exists.
+
+## No Default Browser QA Or Playwright Dependency
+
+The default V3 workflow must not try to locate, install, import, or run Playwright, `playwright-core`, bundled browser runtimes, Node module directory hacks, screenshot loops, or browser automation.
+
+Use source-level checks instead:
+
+- Design Contract
+- Page Specs
+- `visual_subject_policy`
+- `mechanical_layout_preflight`
+- Quality Rubric P0 checks
+- static HTML/CSS/JS completeness checks when useful
+
+If the user explicitly asks for browser QA and the environment already has a working browser automation tool, it may be used as an optional advanced check. If it is missing, skip browser QA and say it was skipped; do not debug dependencies as part of the deck workflow.
 
 ## Phase 1: Design Intake
 
@@ -243,7 +258,7 @@ Choose:
 A. Confirm this Design DNA and continue
 B. Tune parameters
 C. Regenerate Design DNA from the same source
-D. Save as a Design Profile only, do not create deck yet
+D. Save this Design DNA as a reusable Profile now
 ```
 
 For the user's three-image "3D toy future" example, the panel should look more like:
@@ -286,10 +301,10 @@ Choose:
 A. Confirm this Design DNA and continue
 B. Tune parameters
 C. Regenerate Design DNA from the same references
-D. Save as a Design Profile only, do not create deck yet
+D. Save this Design DNA as a reusable Profile now
 ```
 
-After this panel, stop. If the user says "default", treat it as A.
+After this panel, stop. If the user says "default", treat it as A and keep the Design DNA as an unsaved active candidate for this deck.
 
 Do not proceed to PPT Requirement Discovery until the user has answered this panel.
 
@@ -323,10 +338,26 @@ After tuning, show a short Design Diff and ask:
 Use this updated Design DNA?
 A. Confirm and continue
 B. Tune again
-C. Save profile only
+C. Save as reusable Profile now
 ```
 
-## Phase 5: Profile Save
+## Phase 5: Active Design DNA Candidate And Optional Profile Save
+
+Default behavior:
+
+- Keep the accepted Design DNA in memory/reasoning as the active candidate for this deck.
+- Do not create or modify `design-profiles/` by default.
+- Do not create `profile-index.json`, `profile.json`, `versions/*.json`, `diffs/*.json`, adapters, usage logs, thumbnails, or prompt exports by default.
+- Do not update `last_used_at` or `last_output_path` on existing profiles unless the user is explicitly managing/saving profile history.
+- Continue to PPT Requirement Discovery after the active candidate is accepted.
+
+Only save a reusable Design Profile when:
+
+- the user chooses "Save this Design DNA as a reusable Profile now"
+- the user explicitly says "save this style", "save this profile", "保存这个风格", or similar before generation
+- the user reviews the final deck and says they are satisfied and want to save the style for reuse
+
+When saving is explicitly requested, write the minimal reproducible profile assets below.
 
 Profile fields:
 
@@ -363,7 +394,7 @@ Final output:
 
 Planning artifacts such as Design Contract, PPT Blueprint, and Page Specs are required steps, but they are transient by default. Persist them under `outputs/<deck-slug>/specs/` only when the user asks to inspect, edit, audit, or regenerate from specs.
 
-In the final response, mention only the final deck, reusable profile, current profile/adapter version, adapter strategy if used, and known limitations unless the user asks for internal specs.
+In the final response, mention only the final deck, active Design DNA summary, reusable profile only if saved or selected, current profile/adapter version only if applicable, adapter strategy if used, and known limitations unless the user asks for internal specs.
 
 For full profile rules, see [Profile Management](profile-management.md).
 
@@ -375,7 +406,7 @@ Only ask these after the Design DNA Panel Gate is passed.
 
 If the user already provided any of these answers earlier, reuse them and ask only what is missing.
 
-When Phase 6 starts immediately after saving a Design Profile, the assistant must show a numbered choice panel. Do not ask the user to write an open sentence first.
+When Phase 6 starts immediately after accepting an active Design DNA candidate or selecting a saved profile, the assistant must show a numbered choice panel. Do not ask the user to write an open sentence first.
 
 Requirement Discovery must feel like a guided choice panel:
 
@@ -408,10 +439,10 @@ Rules:
 
 ### Standard Chinese Requirement Panel
 
-Use this exact structure as the default Phase 6 interaction after a profile is saved:
+Use this structure as the default Phase 6 interaction after the active Design DNA is accepted. If the profile is saved/selected, mention that. If it is unsaved, say it is being used only for this deck unless the user later saves it:
 
 ```text
-已保存 Design Profile：<profile-path-or-name>
+Design DNA：<dna-name>（当前仅用于本次 PPT；满意后可保存为 Design Profile）
 现在进入 PPT 需求阶段。请直接回复选项编号即可，例如：1A 2E 3B 4C 5A 6D 7B 8A。
 
 1. PPT 主题？
@@ -756,11 +787,43 @@ For every slide with more than one major element, include:
     "text_fit_estimates": [],
     "collision_pairs_checked": [],
     "if_fail": "recompose_or_split_slide"
+  },
+  "layout_box_budget": {
+    "stage": { "w": 1920, "h": 1080 },
+    "zones": [
+      {
+        "id": "title",
+        "x": 110,
+        "y": 140,
+        "w": 980,
+        "allocated_h": 310,
+        "font_family_role": "display_serif",
+        "font_size": 100,
+        "line_height": 1.06,
+        "estimated_lines": 3,
+        "glyph_pad_top": 18,
+        "glyph_pad_bottom": 32,
+        "visual_effect_pad": 0,
+        "required_h": 368,
+        "fit": "pass | fail"
+      }
+    ],
+    "derived_zone_rules": [
+      "body_zone.y >= title_zone.y + title_zone.required_h + 44",
+      "card_zone.y >= max(planned_card_y, body_zone.y + body_zone.required_h + 56)"
+    ],
+    "collision_pairs": [
+      ["title_zone", "body_zone"],
+      ["title_zone", "card_zone"],
+      ["body_zone", "card_zone"],
+      ["card_zone", "nav_safe_zone"]
+    ],
+    "if_fail": "lower_title_size_or_move_next_zone_or_split_slide"
   }
 }
 ```
 
-Do not proceed from Page Spec to HTML when `visual_subject_policy` or `mechanical_layout_preflight` fails.
+Do not proceed from Page Spec to HTML when `visual_subject_policy`, `mechanical_layout_preflight`, or `layout_box_budget` fails.
 
 For image strategy fields, use [Image Asset Strategy](image-asset-strategy.md).
 
@@ -788,6 +851,11 @@ Core rules:
 - no reference images used as slide assets by default
 - no reference-image subject redrawn as CSS/SVG/HTML/AI visuals, icons, mascots, diagrams, or decorative motifs
 - mechanical layout preflight passes before HTML is authored
+- layout box budget passes before HTML is authored
+- major content elements use `data-zone` or an equivalent class-to-zone mapping
+- body/card/footer positions are derived from prior zone required heights instead of independent absolute `top` guesses
+- large multi-line English serif titles use safe line-height and descender padding
+- DOM order must not be used to let later cards/panels cover earlier text
 
 Use CSS, layout, typography, generated shapes, diagrams, and motion to express the extracted Design DNA. If image-like visuals are needed, create abstract style surrogates from the style; do not paste the user's reference images and do not redraw their identifiable subjects.
 
@@ -804,4 +872,4 @@ Use [HTML Generation Rules](html-generation-rules.md) and [Visual Safety Rules](
 
 If the user requested PDF/PPTX, export from the generated HTML when feasible and mention any motion/fidelity limits. If the user requested HTML only, stop at the generated HTML deck.
 
-End at the requested generated artifact. V3 does not include a post-generation browser QA stage in its default flow.
+End at the requested generated artifact. V3 does not include a post-generation browser QA stage in its default flow. Do not probe for Playwright, `playwright-core`, browser runtimes, bundled Node modules, or dependency fixes unless the user explicitly requests browser QA.
