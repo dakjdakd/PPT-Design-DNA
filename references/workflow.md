@@ -99,6 +99,14 @@ Reference images are only for extracting Design DNA. I will not place them into 
 
 Do not search the workspace for images. Do not use images from previous turns unless the user explicitly reselects them.
 
+Apply the Reference Subject Firewall during intake:
+
+- identify allowed style traits separately from forbidden subject matter
+- allowed traits include palette, typography mood, composition rhythm, line quality, border/shadow treatment, material, texture, density, crop treatment, and motion feeling
+- forbidden subject matter includes people, animals, characters, mascots, specific objects, products, buildings, vehicles, toys, and recognizable subject parts such as faces, eyes, ears, tails, fins, horns, wings, paws, posture, clothing, fur, scales, and silhouettes
+- forbidden subject matter cannot become CSS, SVG, HTML, AI-generated visuals, icons, mascots, diagrams, or decorative motifs later
+- if the user wants the subject itself to appear, handle it later as an explicit content image through Image Asset Strategy; do not redraw or approximate it from the reference
+
 ### Reference Image vs Content Image
 
 Always separate these two roles:
@@ -107,6 +115,7 @@ Always separate these two roles:
 Reference image:
 - used to extract mood, color, composition, visual grammar, density, and motion feeling
 - not inserted into the deck by default
+- subject matter is not reusable visual content and cannot be redrawn, traced, stylized, or approximated
 
 Content image:
 - used as an actual slide asset
@@ -139,16 +148,31 @@ Describe what the references contribute:
 
 ```text
 Cyberpunk screenshot:
+Allowed style traits:
 - dark cinematic atmosphere
 - neon accent color
 - high contrast
 - immersive depth
+Forbidden subject matter:
+- vehicles, people, weapons, buildings, or any recognizable source-scene subject
 
 Notion homepage:
+Allowed style traits:
 - high whitespace
 - strict grid
 - calm typography
 - low visual noise
+Forbidden subject matter:
+- specific UI screenshots, icons, logos, or product surfaces unless approved as content
+```
+
+Every reference summary must use this split:
+
+```text
+Reference image:
+- Allowed style traits: <palette / type / layout / texture / line / motion / crop behavior>
+- Forbidden subject matter: <people / animals / characters / mascots / objects / products / subject parts>
+- Subject Firewall: these subjects will not be redrawn, traced, stylized, abstracted into mascots, used as CSS/SVG/HTML visuals, or used as slide assets unless explicitly marked as content.
 ```
 
 Then produce a fused direction:
@@ -201,6 +225,11 @@ Visual consequences:
 - high cyber means neon edges, darker contrast, and stronger glow control
 - low chart weight means the profile is risky for dense data reports
 
+Reference Subject Firewall:
+- Detected subjects: vehicles / people / UI product surfaces
+- These will not be redrawn, traced, stylized, abstracted into mascots, or used as slide visuals.
+- Allowed extraction only: dark palette, neon contrast, grid clarity, calm typography.
+
 Best for:
 - product launch
 - tech portfolio
@@ -247,6 +276,11 @@ Visual consequences:
 - high visual weight means each slide needs one strong synthetic visual anchor
 - low chart weight means it is not ideal for dense data reports unless adapted
 - high toy feel means shapes should be rounded, glossy, friendly, and close-cropped
+
+Reference Subject Firewall:
+- Detected subjects: toy objects / characters / product-like forms
+- These subjects and their parts will not be redrawn as CSS/SVG/AI visuals.
+- Allowed extraction only: soft material, rounded geometry, candy palette, close-crop composition.
 
 Choose:
 A. Confirm this Design DNA and continue
@@ -687,12 +721,46 @@ Each Page Spec needs:
   - image/visual slot role
   - empty-slot fallback
   - image strategy when relevant
+  - visual subject policy
+  - mechanical layout preflight
   - text/surface pairs
   - z-index plan
   - collision exclusions
 - speaker note if helpful
 
 If a slide has no approved content image, its visual slot must become typography, diagram, CSS/SVG visual, material object, or whitespace. Do not create a blank image placeholder, plus-sign box, or meaningless repeated side block.
+
+If the active Design Profile came from reference images with identifiable subjects, each Page Spec must include:
+
+```json
+{
+  "visual_subject_policy": {
+    "uses_reference_subject": false,
+    "subject_replication_allowed": false,
+    "forbidden_reference_subjects": ["cat", "fish", "dinosaur", "person", "mascot", "product object"],
+    "visual_surrogate_strategy": "abstract_material_shape | typography | diagram | texture | whitespace",
+    "forbid_subject_silhouette": true,
+    "forbid_subject_parts": true
+  }
+}
+```
+
+For every slide with more than one major element, include:
+
+```json
+{
+  "mechanical_layout_preflight": {
+    "stage": { "w": 1920, "h": 1080 },
+    "safe_margin": { "top": 80, "right": 96, "bottom": 96, "left": 96 },
+    "nav_safe_zone_reserved": true,
+    "text_fit_estimates": [],
+    "collision_pairs_checked": [],
+    "if_fail": "recompose_or_split_slide"
+  }
+}
+```
+
+Do not proceed from Page Spec to HTML when `visual_subject_policy` or `mechanical_layout_preflight` fails.
 
 For image strategy fields, use [Image Asset Strategy](image-asset-strategy.md).
 
@@ -718,8 +786,10 @@ Core rules:
 - no text below comfortable reading size
 - purposeful motion derived from DNA
 - no reference images used as slide assets by default
+- no reference-image subject redrawn as CSS/SVG/HTML/AI visuals, icons, mascots, diagrams, or decorative motifs
+- mechanical layout preflight passes before HTML is authored
 
-Use CSS, layout, typography, generated shapes, diagrams, and motion to express the extracted Design DNA. If image-like visuals are needed, create abstract/generated visual elements from the style; do not paste the user's reference images.
+Use CSS, layout, typography, generated shapes, diagrams, and motion to express the extracted Design DNA. If image-like visuals are needed, create abstract style surrogates from the style; do not paste the user's reference images and do not redraw their identifiable subjects.
 
 HTML is preferred because:
 

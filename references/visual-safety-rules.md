@@ -15,8 +15,10 @@ Before rendering each slide, define:
 - z-index ladder
 - contrast pairs
 - typography spacing and text-stack clearance
+- reference subject firewall
 - collision exclusions
 - dynamic zone budget
+- mechanical layout preflight
 - layout capacity gate
 
 Do not rely on a loose prompt. Encode safety in Page Specs, CSS tokens, layer rules, and visual-slot policy before writing the final deck.
@@ -26,6 +28,8 @@ These constraints are not templates. They do not prescribe where a title, card, 
 ## Image And Visual Slots
 
 Reference images are style evidence only. They are not deck images unless the user explicitly marks them as slide content.
+
+They also cannot be redrawn. Do not trace, stylize, approximate, abstract into a mascot, or rebuild identifiable reference subjects as CSS, SVG, HTML, AI-generated images, icons, diagrams, or decorative motifs. Forbidden subjects include people, animals, characters, mascots, specific products, buildings, vehicles, toys, recognizable objects, and subject parts such as faces, eyes, ears, tails, fins, horns, wings, paws, posture, clothing, fur, scales, and silhouettes.
 
 For full image handling, use [Image Asset Strategy](image-asset-strategy.md). It defines content images, replaceable slots, image manifests, AI-generated visuals, and slot types.
 
@@ -41,7 +45,7 @@ If a slide needs visual weight but no approved content image exists, use one of 
 - **Typographic visual**: oversized keyword, number, or phrase integrated into the layout.
 - **CSS/SVG diagram**: flow, matrix, orbit, grid, timeline, topology, or data shape.
 - **Generated visual brief**: a clearly described image prompt or image-generation task, only if the user approves image generation.
-- **Material object**: abstract CSS shape derived from the Design DNA, with no "image placeholder" affordance.
+- **Material object**: abstract CSS shape derived from the Design DNA, with no "image placeholder" affordance and no reference-subject silhouette or parts.
 - **Empty space**: intentional whitespace when the Design DNA supports it.
 
 Approved content images can use these display modes:
@@ -59,6 +63,8 @@ Approved content images can use these display modes:
 If the Page Spec asks for an image but no image asset is approved, the renderer must change the visual strategy instead of drawing a placeholder.
 
 If the user asks for later-replaceable image slots, visible placeholders must be designed in the active Design DNA. Default to hidden slots with CSS fallback, not a visible empty frame.
+
+If the active Design Profile came from identifiable reference subjects, the Page Spec must include `visual_subject_policy`. The visual strategy must be `abstract_material_shape`, `typography`, `diagram`, `texture`, `pattern`, or `whitespace` unless an approved content image exists. A cat reference can produce yellow palette and hand-drawn line quality, but not a cat, cat outline, cat ears, cat face, or cat-shaped decoration.
 
 ## Text Contrast
 
@@ -187,6 +193,28 @@ Rules:
 - `nav_safe_zone` must be reserved before cards, captions, and footer are placed.
 - If a free composition cannot satisfy the budget, generate a different composition rather than forcing a template.
 
+## Mechanical Layout Preflight
+
+Use Mechanical Layout Preflight before HTML authoring for every slide with more than one major element. The Page Spec field is `mechanical_layout_preflight`. It prevents the failures users see first: titles blocking cards, visuals covering text, footer/nav overlap, and text clipped inside cards.
+
+Required checks:
+
+- estimate text box height from available width, font size, line-height, expected line count, script, and visual-effect padding
+- include CJK glyph height, English descenders, stroke, glow, shadow, and duplicate-offset layers in title-zone height
+- include card padding, badges, labels, captions, and internal gaps in card capacity
+- reserve navigation safe zone before placing bottom cards, captions, footers, progress bars, or page counters
+- check collision pairs such as title/card, title/visual, body/decoration, card/nav, footer/nav, and caption/media
+
+If any check fails, revise the source plan before writing HTML:
+
+- recompose the slide
+- reduce copy
+- reduce title size by 5-12%
+- change layout archetype
+- split the slide
+
+Do not use `overflow: hidden` on text containers to hide failures. It is allowed only for decorative crop containers.
+
 ## Typography Spacing Safety
 
 Text-to-text collisions are blocking failures, even when no boxes overlap in CSS. Check the visual shape of glyphs, especially for large titles, Chinese characters, English descenders, and stroked/shadowed display type.
@@ -267,13 +295,16 @@ Use these source-level corrections:
 
 | Failure | Patch |
 |---|---|
+| reference subject redrawn | remove subject-derived visual; replace with typography, abstract material shape, diagram, texture, pattern, or whitespace |
 | empty image placeholder | replace with typographic visual, diagram, or whitespace |
 | low text contrast | change text/surface pair, add plate, or move text |
 | object covers text | update z-index and collision zones; move or crop object |
 | card text unreadable | switch card variant to valid surface pair |
 | pale card inherits white text | assign explicit dark ink token to the card and its descendants |
+| title zone underestimated | increase title zone, reserve visual-effect padding, split title, or reduce title size by 5-12% |
 | title/subtitle/body squeezed | increase title line-height, add visual-effect padding, add compact safe gap, split title lines, or reduce title size by 5-10% |
 | title and cards compete for space | change composition, move cards below/aside with a safe gap, reduce card count, or split slide |
+| card zone collision | reduce card count, change archetype, recompose, or split slide |
 | decoration crosses readable content | lower opacity, move to decoration zone, crop off-stage, or remove |
 | oversized side visual unrelated | remove, convert to diagram, or make it background-only |
 | content too dense | split slide, compress copy, or change layout |

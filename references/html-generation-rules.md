@@ -232,6 +232,52 @@ Rules:
 
 Free layouts are encouraged; unbudgeted layouts are not.
 
+## Mechanical Layout Preflight
+
+Mechanical Layout Preflight is required before HTML authoring for every slide with more than one major element. It is a blocking source-level gate, not a final-report checklist.
+
+Each slide must include:
+
+```json
+{
+  "mechanical_layout_preflight": {
+    "stage": { "w": 1920, "h": 1080 },
+    "safe_margin": { "top": 80, "right": 96, "bottom": 96, "left": 96 },
+    "nav_safe_zone_reserved": true,
+    "text_fit_estimates": [
+      {
+        "zone": "title",
+        "text": "Every Day, Finish These Six Things",
+        "font_size": 82,
+        "line_height": 1.12,
+        "estimated_lines": 2,
+        "visual_effect_pad": 28,
+        "required_height": 212,
+        "allocated_height": 250,
+        "fit": "pass"
+      }
+    ],
+    "collision_pairs_checked": [
+      ["title_zone", "card_zone"],
+      ["title_zone", "visual_zone"],
+      ["body_zone", "decoration_zone"],
+      ["card_zone", "nav_safe_zone"]
+    ],
+    "if_fail": "recompose_or_split_slide"
+  }
+}
+```
+
+Rules:
+
+- Estimate text boxes from available width, script, font size, line-height, expected line count, and visual-effect padding before writing positioned HTML.
+- CJK headings require safe line-height and `letter-spacing: 0`.
+- Stroked, shadowed, glowing, or duplicate-offset display type requires extra reserved height.
+- Card capacity includes padding, badges, labels, captions, and internal gaps.
+- Navigation safe zone is reserved before bottom cards, captions, footers, or progress bars are placed.
+- If the estimate fails, revise the Page Spec first: recompose, reduce copy, reduce title size by 5-12%, change archetype, or split the slide.
+- Do not use `overflow: hidden` on text containers to hide overflow. It is allowed only for decorative crop containers.
+
 ## Layout Capacity Gate
 
 Layout archetypes are intent labels and capacity checks, not templates. They help decide whether a slide is trying to carry too much, while leaving the visual arrangement open.
@@ -271,13 +317,37 @@ If no approved content image exists, use one of these alternatives:
 
 - typographic visual
 - CSS/SVG diagram
-- material object derived from Design DNA
+- abstract material object derived from Design DNA
 - intentional whitespace
 - image-generation prompt only after user approval
 
 Never render blank boxes, plus signs, or "drop image here" areas in final slides.
 
 If the user wants later-replaceable images, prefer a stable `image-manifest` plus CSS fallback visuals. Show visible designed placeholders only when the user asks for editable slots, and make those placeholders follow the active Design DNA rather than a generic gray frame.
+
+## Reference Subject Firewall
+
+CSS/SVG/HTML visuals can express the extracted style, but they cannot depict identifiable subjects from style reference images.
+
+Forbidden redraws include:
+
+- animal, person, character, mascot, product, vehicle, toy, building, or recognizable object silhouettes from references
+- subject parts such as eyes, mouths, ears, tails, paws, fins, horns, wings, fur, scales, clothing, posture, or expressions
+- recognizable product/object outlines copied or approximated from references
+- cartoon mascot approximations or "inspired by the reference subject" side visuals
+- AI-generated images that recreate, stylize, or approximate a reference subject without explicit user approval
+
+Allowed substitutes:
+
+- typographic visual
+- abstract shape system
+- chart or data visual
+- texture or pattern
+- crop marks, frames, labels, paper strips, tape, grid blocks, and other non-representational layout grammar
+- intentional whitespace
+- user-approved content image
+
+If a reference image contains a cat, fish, dinosaur, person, mascot, product, or other recognizable subject, the generated deck may use its palette, line quality, texture, composition, and mood. It must not draw that subject, its outline, or its parts. Any subject-derived illustration is a P0 failure and must be removed before handoff.
 
 ## Motion And Effects
 
@@ -313,7 +383,7 @@ Good HTML decks need visual assets or visual systems. If no content images are p
 - SVG or CSS data visualizations
 - generated images only with explicit user approval or when the deck needs them
 
-Do not use generic decorative blobs, purple-gradient defaults, or repeated card walls unless the DNA specifically calls for them.
+Do not use generic decorative blobs, purple-gradient defaults, repeated card walls, or reference-subject redraws unless the DNA specifically calls for the non-subject design grammar. Style extraction can drive abstraction; it cannot revive the reference subject as an illustration.
 
 ## Readability Invariants
 
@@ -499,9 +569,11 @@ Before final handoff:
 
 - inspect visible text for internal metadata
 - ensure reference images are not embedded accidentally
+- ensure reference-image subjects are not redrawn as CSS/SVG/HTML/AI visuals, icons, mascots, diagrams, or decorative motifs
 - verify all slides remain 16:9
 - verify no scrollbars inside slides
 - verify no overlap or overflow
+- verify `mechanical_layout_preflight` passed for slides with multiple major elements
 - verify no fake image placeholders or meaningless repeated side blocks
 - verify all text/surface pairs are readable
 - verify decorative/media layers do not cover text at rest

@@ -11,6 +11,7 @@ Design Reference Image
 - used to extract Design DNA
 - contributes mood, palette, composition, density, texture, image treatment, and visual psychology
 - never inserted into the deck by default
+- identifiable subjects are not reusable visual content and must not be redrawn, traced, stylized, approximated, abstracted into mascots, or rebuilt as CSS/SVG/HTML/AI visuals
 
 Content Image / Slide Asset
 - used as actual slide content
@@ -19,6 +20,20 @@ Content Image / Slide Asset
 ```
 
 Do not infer that a reference image should appear in the deck. If unclear, ask one short clarification.
+
+## Reference Subject Firewall
+
+When an image is a Design Reference Image, extract only style traits:
+
+- palette and contrast behavior
+- typography mood and title treatment
+- composition rhythm and crop behavior
+- line quality, borders, shadows, texture, grain, material, and motion feeling
+- information density and visual hierarchy
+
+Do not extract the image's subject as reusable slide content. Forbidden subject matter includes people, animals, characters, mascots, specific objects, products, buildings, vehicles, toys, and recognizable subject parts such as faces, eyes, ears, tails, fins, horns, wings, paws, posture, clothing, fur, scales, and silhouettes.
+
+This firewall blocks both direct asset use and redraws. A cat, fish, dinosaur, person, mascot, or product reference cannot become a CSS/SVG illustration, AI-generated approximation, icon, diagram character, decorative motif, or "inspired by" mascot. If the user wants the subject itself, it must be approved as a Content Image / Slide Asset or requested as a new generated image in the Image Intent step.
 
 ## When To Ask
 
@@ -126,12 +141,14 @@ Use:
 - typographic visual
 - CSS/SVG diagram
 - data visualization built in HTML/CSS/SVG
-- material object derived from Design DNA
+- abstract material object derived from Design DNA
 - controlled texture/pattern
 - intentional whitespace
 - optional AI-generated image only after user approval
 
 Do not render a large empty rectangle, plus sign, "drop image here", "image placeholder", or a meaningless decorative side panel.
+
+Do not use missing-image strategies to redraw reference subjects. Abstract material objects may include paper strips, tape, labels, slices, grid blocks, hand-drawn lines, halftone fields, crop marks, and geometric modules. They must not include animal/person/character/object silhouettes or subject parts from the reference.
 
 ## Replaceable Slots
 
@@ -217,6 +234,21 @@ When a slide has image or future image behavior, include:
 ```
 
 For `intent: none`, state the non-image visual strategy instead of leaving this blank.
+
+When the active Design Profile came from reference images with identifiable subjects, also include:
+
+```json
+{
+  "visual_subject_policy": {
+    "uses_reference_subject": false,
+    "subject_replication_allowed": false,
+    "forbidden_reference_subjects": ["cat", "fish", "dinosaur", "person", "mascot", "product object"],
+    "visual_surrogate_strategy": "abstract_material_shape | typography | diagram | texture | whitespace",
+    "forbid_subject_silhouette": true,
+    "forbid_subject_parts": true
+  }
+}
+```
 
 ## Text Over Image Safety
 

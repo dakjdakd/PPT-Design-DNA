@@ -40,6 +40,7 @@ Required in every version snapshot:
 - `user_dna`
 - `execution_dna`
 - `tokens`
+- reference subject firewall policy when the profile came from images
 - `negative_constraints`
 - `design_prompt`
 - `quality_constraints`
@@ -93,14 +94,38 @@ Valid `input_mode` values:
         "type": "game_screenshot",
         "description": "Cyberpunk 2077 neon city scene",
         "weight": 0.45,
-        "role": "style_reference"
+        "role": "style_reference",
+        "style_traits_allowed": [
+          "dark cinematic atmosphere",
+          "neon accent contrast",
+          "high contrast lighting",
+          "immersive depth"
+        ],
+        "subject_matter_detected": [
+          "vehicles",
+          "people",
+          "buildings"
+        ],
+        "subject_replication_policy": "forbidden"
       },
       {
         "id": "img_02",
         "type": "website_screenshot",
         "description": "Notion homepage",
         "weight": 0.55,
-        "role": "style_reference"
+        "role": "style_reference",
+        "style_traits_allowed": [
+          "high whitespace",
+          "strict grid",
+          "calm typography",
+          "low visual noise"
+        ],
+        "subject_matter_detected": [
+          "specific UI surface",
+          "icons",
+          "logo"
+        ],
+        "subject_replication_policy": "forbidden"
       }
     ],
     "extraction_confidence": 0.82
@@ -109,6 +134,10 @@ Valid `input_mode` values:
 ```
 
 `role` must distinguish `style_reference` from `content_asset`. Style references must not be embedded in the deck by default.
+
+For every `style_reference`, record `style_traits_allowed`, `subject_matter_detected`, and `subject_replication_policy`. The default policy is `forbidden`: identifiable subjects in reference images are not reusable visual content and cannot be redrawn, traced, stylized, approximated, abstracted into mascots, or rebuilt as CSS/SVG/HTML/AI visuals. A cat reference may produce yellow palette, hand-drawn line quality, soft color blocks, or playful hierarchy; it must not produce a cat, cat outline, cat ears, cat face, or cat-shaped decoration.
+
+Allowed style traits include palette, type mood, composition rhythm, border/shadow treatment, material, texture, line quality, information density, crop behavior, contrast behavior, and motion feeling. Forbidden subject matter includes people, animals, characters, mascots, specific products, buildings, vehicles, toys, recognizable objects, and subject parts such as faces, eyes, ears, tails, fins, horns, wings, paws, posture, clothing, fur, scales, and silhouettes.
 
 ## Discovery
 
@@ -402,6 +431,8 @@ It should include:
 - typography scale
 - density gates
 - image treatment rules
+- reference subject firewall
+- mechanical layout preflight requirements
 - motion rules
 - negative constraints
 
@@ -426,6 +457,36 @@ Example:
       "max_words_per_slide": 55,
       "minimum_font_size": 24,
       "split_when_overflow": true
+    },
+    "reference_subject_firewall": {
+      "enabled": true,
+      "forbidden_subjects": [
+        "people",
+        "animals",
+        "characters",
+        "mascots",
+        "specific objects from references"
+      ],
+      "allowed_surrogates": [
+        "typographic visual",
+        "abstract material object",
+        "geometric diagram",
+        "texture",
+        "pattern",
+        "intentional whitespace"
+      ],
+      "forbid_subject_silhouette": true,
+      "forbid_subject_parts": true,
+      "forbid_svg_redraw": true,
+      "forbid_ai_redraw": true
+    },
+    "mechanical_layout_preflight": {
+      "required_before_html": true,
+      "estimate_text_fit": true,
+      "reserve_visual_effect_padding": true,
+      "reserve_nav_safe_zone": true,
+      "check_collision_pairs": true,
+      "if_fail": "recompose_reduce_copy_reduce_title_or_split_slide"
     },
     "motion_rules": {
       "max_motion_intensity": 45,

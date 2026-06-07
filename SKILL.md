@@ -73,6 +73,10 @@ Make the reference-image contract explicit:
 
 - Reference images are for **style extraction only**.
 - Do not place reference images into the generated deck.
+- Do not redraw, trace, stylize, or approximate identifiable subjects from reference images as CSS, SVG, HTML, AI-generated images, icons, mascots, or decorative objects.
+- Extract visual language only: palette, typography mood, composition rhythm, borders, shadows, texture, grain, line quality, density, motion direction, crop treatment, and contrast behavior.
+- Never extract reference-image subject matter as reusable visual content. Forbidden subject matter includes people, animals, characters, mascots, specific products, buildings, vehicles, toys, recognizable objects, and subject parts such as faces, eyes, ears, tails, fins, horns, wings, paws, clothing, posture, expressions, fur, scales, or silhouettes.
+- If a user uploads a cat, fish, dinosaur, person, product, or mascot as a style reference, the deck may learn its color, line, texture, composition, and mood, but must not generate that subject, its outline, or its parts.
 - Only embed a user image if the user separately says it is content material for a slide.
 - If the user wants slide images later, handle them through Image Asset Strategy rather than generic placeholders.
 
@@ -83,6 +87,7 @@ For deck creation, ask only the missing high-leverage choices. Avoid long generi
 V3 has strict gates:
 
 1. **Design Source Gate**: ensure explicit reference images, a saved profile/adapter, or no-image Design Discovery choices exist.
+   - Apply the Reference Subject Firewall at this gate. Record allowed style traits separately from forbidden subject matter before extracting Design DNA.
 2. **Design DNA Panel Gate**: after extraction/discovery, show the parameter panel and stop for user confirmation/tuning. Do not ask page count, audience, purpose, content source, or export before this gate.
 3. **Profile Asset Gate**: after confirmation/tuning, save or update a Design Profile before generation. Tuning creates a new version; do not overwrite.
 4. **PPT Requirement Gate**: only after the user accepts/saves/tunes the profile, ask topic, audience, page count, content source, purpose, density, narrative style, and output needs.
@@ -103,6 +108,7 @@ For profile-management requests, do not ask for reference images, deck topic, au
    - If multiple images are provided, default to a blended style unless the user asks for weighted or separate profiles.
    - Summarize what each image contributes.
    - Treat reference images as style evidence only; never embed them by default.
+   - For each reference image, summarize allowed style traits separately from forbidden subject matter. The forbidden subject matter cannot become CSS/SVG/HTML illustrations, AI-generated visuals, icons, mascots, or decorative motifs later.
    - See [Core Workflow](references/workflow.md) and [Design Discovery](references/design-discovery.md).
 
 2. **Style Extraction Or Discovery**
@@ -124,7 +130,7 @@ For profile-management requests, do not ask for reference images, deck topic, au
    - Tuning a saved profile creates a new immutable version.
 
 5. **Save Design Profile**
-   - Save the minimal reproducible Design Profile: profile identity, source/discovery summary, current version pointer, Design DNA snapshot, design tokens, negative constraints, and derived prompt.
+   - Save the minimal reproducible Design Profile: profile identity, source/discovery summary, current version pointer, Design DNA snapshot, design tokens, reference-subject firewall policy, negative constraints, and derived prompt.
    - Do not save bulky management artifacts by default. Usage history, prompt exports, source image copies, and human-readable reports are optional.
    - Design Prompt is a derived export, not the source of truth.
    - See [Profile Management](references/profile-management.md).
@@ -157,7 +163,7 @@ For profile-management requests, do not ask for reference images, deck topic, au
 9. **Design Contract**
    - Convert the active profile/adapter into scenario-specific rules.
    - Specify what to preserve, what to adapt, density strategy, chart/formula strategy, slide splitting strategy, and forbidden mistakes.
-   - Include image asset rules: approved content images, generated image briefs, replaceable slots, fallback visuals, and forbidden placeholder behavior.
+   - Include image asset rules: approved content images, generated image briefs, replaceable slots, fallback visuals, reference-subject firewall rules, and forbidden placeholder behavior.
    - See [Page Spec Contract](references/page-spec-contract.md).
 
 10. **PPT Blueprint**
@@ -170,6 +176,7 @@ For profile-management requests, do not ask for reference images, deck topic, au
    - Generate a structured spec for every slide before rendering.
    - Include purpose, core message, layout archetype, zones, word limits, visual constraints, required elements, forbidden elements, and quality targets.
    - Include image strategy fields for each slide when relevant: asset role, slot type, ratio, fit, safe area, caption, and fallback.
+   - Include `visual_subject_policy` and `mechanical_layout_preflight` for every slide with reference-derived visuals or more than one major element.
    - Do not generate slides from one loose prompt.
 
 12. **HTML Deck Generation**
@@ -178,6 +185,8 @@ For profile-management requests, do not ask for reference images, deck topic, au
     - Use a fixed 1920x1080 internal stage scaled uniformly to the viewport.
     - Enforce design tokens, density gates, layout archetypes, safe margins, and minimum font sizes.
     - Enforce visual safety: no generic empty image slots, no unreadable text/surface pairs, no decorative layers covering content, and no unreserved navigation overlap.
+    - Enforce the Reference Subject Firewall: CSS/SVG/HTML visuals can express style, but cannot depict subjects or subject parts from style reference images.
+    - Enforce Mechanical Layout Preflight before writing HTML for each slide: estimate text fit, reserve visual-effect padding, reserve navigation safe zones, and check zone collisions. If the preflight fails, recompose, reduce copy, reduce title size slightly, or split the slide before generating.
     - Use purposeful motion derived from Design DNA; avoid one generic animation recipe for every slide.
     - Do not use reference images as slide assets unless explicitly approved as content.
     - See [HTML Generation Rules](references/html-generation-rules.md) and [Visual Safety Rules](references/visual-safety-rules.md).
@@ -208,6 +217,7 @@ See [Reference Skill Lessons](references/reference-skill-lessons.md).
 
 Before generating HTML slides, apply [Visual Safety Rules](references/visual-safety-rules.md). These rules are mandatory because they prevent the most common ugly deck failures:
 
+- reference-image subjects being redrawn as bad CSS/SVG/AI illustrations
 - a repeated right-side "image area" that is actually an empty placeholder
 - white or low-contrast text on pale cards/backgrounds
 - large images, shapes, or background type covering readable content
@@ -221,6 +231,8 @@ Before generating HTML slides, apply [Visual Safety Rules](references/visual-saf
 
 If a slide needs a visual but has no user-approved content image, use typography, diagrams, CSS/SVG visuals, intentional whitespace, or ask for/generated images when appropriate. Do not create a fake image placeholder.
 
+Reference Subject Firewall is a P0 safety category. A style reference can teach the deck how to look, but not what specific subject to draw. If the source image contains a cat, fish, dinosaur, person, mascot, product, vehicle, toy, or other recognizable subject, the generated deck must use abstract style surrogates instead of subject-derived illustrations. This blocks direct insertion, tracing, redraws, stylized approximations, subject silhouettes, and subject parts.
+
 Typography spacing is a mandatory visual safety category. Large titles must reserve visual clearance for Chinese glyph height, English descenders, stroke, shadow, glow, and offset layers. Keep spacing compact but safe: do not solve squeezed text by making the whole deck loose; instead use safe line-height, small visual-effect padding, controlled gaps, title splitting, or a slight font-size reduction.
 
 Surface Pair, Zone Budget, and Layout Capacity are P0 mechanical constraints, not aesthetic suggestions. They protect freedom by preventing mechanical failures; they must not turn the deck into a fixed template system:
@@ -231,6 +243,7 @@ Surface Pair, Zone Budget, and Layout Capacity are P0 mechanical constraints, no
 - Zones use the fixed 1920x1080 stage coordinate system only for collision reasoning. They must come from the slide's unique composition and must not force repeated layouts.
 - Main text zones cannot intersect visual, decoration, footer, navigation, or no-text zones. If there is no room, change layout, split the slide, reduce card count, compress copy, or lower decorative weight.
 - Layout Capacity is a freedom-preserving capacity check, not a template rule. It says what a page type can safely carry; it does not dictate where everything must go.
+- Mechanical Layout Preflight is required before HTML authoring. Estimate text boxes, CJK line-height, stroke/shadow/offset expansion, card padding, and nav safe-zone occupancy. A failed estimate must trigger recomposition or slide splitting, not hidden overflow.
 
 ## Option-First Requirement Collection
 

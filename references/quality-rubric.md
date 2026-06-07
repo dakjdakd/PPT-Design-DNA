@@ -38,6 +38,14 @@ Recommended pass targets:
 
 Do not knowingly generate a slide with any of these issues:
 
+Reference Subject Firewall failures:
+
+- reference-image subjects are redrawn as CSS/SVG/HTML/AI visuals, icons, mascots, diagrams, or decorative motifs
+- animal, person, character, mascot, product, object, or subject-part motifs are derived from style reference images
+- a slide that needs `visual_subject_policy` omits it or allows subject replication without explicit content approval
+
+Mechanical layout failures:
+
 - text below minimum readable size
 - text overflow
 - element overlap
@@ -61,6 +69,10 @@ Do not knowingly generate a slide with any of these issues:
 - a visual object intersects a declared no-text or collision-exclusion zone
 - navigation controls cover content
 - title zone and card/body/visual zones compete for the same physical space
+- title, card, body, visual, footer, or nav zones overlap after accounting for stroke, shadow, glow, duplicate offset layers, padding, and navigation safe area
+- text containers use `overflow: hidden` to conceal missing capacity
+- body, card, caption, or footer content enters the navigation safe zone
+- a large side visual has no approved content role and no abstract surrogate strategy
 - CJK display title glyphs collide because of Latin poster line-height, negative tracking, or missing reserved title-zone height
 - huge title, subtitle, divider, body, card, or footer text visually touch because the text stack has no real clearance
 
@@ -96,6 +108,12 @@ Common corrections:
 - reduce_motion
 - reserve_nav_safe_area
 - remove_reference_asset
+- remove_reference_subject_redraw
+- replace_reference_subject_with_abstract_surrogate
+- add_visual_subject_policy
+- add_mechanical_layout_preflight
+- fix_title_zone_estimate
+- fix_card_zone_collision
 - split_dense_evidence_slide
 
 Example:
@@ -141,6 +159,8 @@ If the issue is mechanical, such as overlap, overflow, contrast, unreadable char
 
 Also correct directly when the issue is a fake image placeholder, unreadable text/surface pair, decorative object covering content, or navigation overlap. Do not ask the user whether to keep a mechanically broken page.
 
+Also correct directly when reference-image subjects are redrawn or approximated. Remove the subject-derived visual and replace it with typography, an abstract material shape, a diagram, texture/pattern, or intentional whitespace. Do not ask whether to keep a mechanically or policy-broken redraw.
+
 ## Handoff Reporting
 
 When reporting generation quality, keep it concise:
@@ -177,10 +197,12 @@ Before final handoff, apply [Visual Safety Rules](visual-safety-rules.md) while 
 For each slide:
 1. Identify all text surfaces and verify contrast.
 2. Identify all image/visual zones and verify each has a role.
-3. Identify large decorative/media/background layers and verify they do not cover content.
-4. Check cards, labels, badges, captions, and chart text for paired colors.
-5. Check the navigation safe zone.
-6. Correct blocking issues in the source before delivery.
+3. Verify `visual_subject_policy` when references contain identifiable subjects; no subject redraws, silhouettes, parts, mascots, or CSS/SVG/AI approximations are allowed.
+4. Identify large decorative/media/background layers and verify they do not cover content.
+5. Check cards, labels, badges, captions, and chart text for paired colors.
+6. Check `mechanical_layout_preflight`: text estimates, title visual padding, card padding, and collision pairs.
+7. Check the navigation safe zone.
+8. Correct blocking issues in the source before delivery.
 ```
 
 The following are P0 issues:
@@ -189,10 +211,12 @@ The following are P0 issues:
 - pale card or bright accent card with inherited white or low-contrast text
 - any text hidden behind an object
 - any text crossing a busy image without a plate or scrim
+- any reference-subject redraw or approximation in CSS/SVG/HTML/AI visuals
 - any fake image placeholder in final output
 - any slide where navigation covers content
 - any CJK display title using unsafe line-height or negative tracking that causes visual collision
 - any title/card/body/visual overlap caused by missing dynamic zone budget
+- any slide missing required mechanical layout preflight when multiple major elements exist
 
 ## Source-Level Mechanical Preflight
 
@@ -204,8 +228,11 @@ Check the HTML/CSS source for obvious mechanical failures:
 - `.card`, `.stat-card`, `.badge`, `.caption`, `.label`, chart labels, and formula labels missing explicit `color`.
 - CJK display selectors using `line-height < 0.98`, negative `letter-spacing`, or Latin poster settings such as `.8`, `.85`, or `.9`.
 - visible placeholder language or blank boxes such as `drop image here`, plus-sign empty frames, or meaningless right-side image areas.
+- reference-subject redraws such as animal/person/character/object silhouettes, eyes, ears, tails, paws, fins, horns, wings, mascot faces, or product/object outlines derived from style references.
 - navigation controls positioned over body/card/footer zones.
 - decoration, media, or background type assigned a higher z-index than content without a contrast plate.
 - `overflow: hidden` used on text containers to mask missing capacity instead of revising copy, layout, or page count.
+- missing `visual_subject_policy` when reference images included identifiable subjects.
+- missing `mechanical_layout_preflight` for slides with multiple major elements.
 
 These checks do not require browser screenshots and must not reintroduce the removed screenshot-review-and-revision flow.

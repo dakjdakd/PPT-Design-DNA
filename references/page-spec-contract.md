@@ -34,7 +34,9 @@ Example:
     "negative_constraints": [
       "Do not shrink formulas below readable size.",
       "Do not preserve whitespace by hiding required evidence.",
-      "Do not create decorative title-only pages for technical steps."
+      "Do not create decorative title-only pages for technical steps.",
+      "Do not recreate identifiable subjects from style reference images.",
+      "Do not draw animals, people, mascots, characters, products, or object silhouettes from style references."
     ]
   }
 }
@@ -98,10 +100,12 @@ Required fields:
 - layout_capacity
 - visual_slot_policy
 - image_strategy
+- visual_subject_policy
 - text_surface_pairs
 - surface_pair_plan
 - typography_spacing
 - text_stack_plan
+- mechanical_layout_preflight
 - z_index_plan
 - collision_exclusions
 - mechanical_failure_fixes
@@ -247,6 +251,21 @@ Example:
         "empty_slot_fallback": "css_svg_diagram",
         "forbid_placeholder_box": true
       },
+      "visual_subject_policy": {
+        "uses_reference_subject": false,
+        "subject_replication_allowed": false,
+        "forbidden_reference_subjects": [
+          "cat",
+          "fish",
+          "dinosaur",
+          "person",
+          "mascot",
+          "specific product object"
+        ],
+        "visual_surrogate_strategy": "diagram",
+        "forbid_subject_silhouette": true,
+        "forbid_subject_parts": true
+      },
       "image_strategy": {
         "intent": "fallback_visual",
         "slot_type": null,
@@ -260,6 +279,30 @@ Example:
         "text_overlay_allowed": false,
         "fallback_if_missing": "css_svg_diagram",
         "visible_placeholder": false
+      },
+      "mechanical_layout_preflight": {
+        "stage": { "w": 1920, "h": 1080 },
+        "safe_margin": { "top": 80, "right": 96, "bottom": 96, "left": 96 },
+        "nav_safe_zone_reserved": true,
+        "text_fit_estimates": [
+          {
+            "zone": "title",
+            "text": "From Raw Data to Explainable Variables",
+            "font_size": 96,
+            "line_height": 1.08,
+            "estimated_lines": 1,
+            "visual_effect_pad": 0,
+            "required_height": 124,
+            "allocated_height": 140,
+            "fit": "pass"
+          }
+        ],
+        "collision_pairs_checked": [
+          ["title_zone", "visual_zone"],
+          ["body_zone", "visual_zone"],
+          ["footer_zone", "nav_safe_zone"]
+        ],
+        "if_fail": "recompose_or_split_slide"
       },
       "z_index_plan": {
         "background": 0,
@@ -524,3 +567,30 @@ Every real Page Spec must include the following fields. If any field cannot be f
 See [Visual Safety Rules](visual-safety-rules.md).
 
 For detailed image field semantics, read [Image Asset Strategy](image-asset-strategy.md).
+
+## Visual Subject Policy
+
+Use `visual_subject_policy` whenever the active Design Profile came from reference images or when a slide requests a fallback visual.
+
+Rules:
+
+- `uses_reference_subject` defaults to `false`.
+- `subject_replication_allowed` defaults to `false` and can become true only when the user explicitly marks an image as slide content or explicitly requests a new subject image.
+- Style references cannot become CSS/SVG/HTML drawings, icons, mascots, generated-image prompts, or decorative motifs that depict the reference subject.
+- Forbidden reference subjects include people, animals, characters, mascots, specific products, buildings, vehicles, toys, recognizable objects, and subject parts such as eyes, ears, tails, fins, horns, wings, paws, posture, clothing, fur, scales, and silhouettes.
+- If no approved content image exists, use one of these `visual_surrogate_strategy` values: `abstract_material_shape`, `typography`, `diagram`, `texture`, `pattern`, or `whitespace`.
+- Abstract material shapes can include paper strips, tape, labels, slices, grid blocks, hand-drawn lines, halftone fields, crop marks, and geometric modules. They cannot include animal/person/character/object silhouettes or parts from the reference.
+
+## Mechanical Layout Preflight
+
+Use `mechanical_layout_preflight` before converting Page Specs into HTML. It is a blocking gate, not a handoff note.
+
+Rules:
+
+- Estimate text boxes before writing source: available width, expected line count, script type, font size, line-height, and visual-effect padding.
+- CJK display text must use safe line-height and `letter-spacing: 0`; do not import tight Latin poster settings into Chinese headings.
+- Stroked, shadowed, glowing, or duplicate-offset titles must reserve extra visible height before cards, body text, dividers, captions, or navigation are placed.
+- Card capacity includes padding and internal label/badge height.
+- Navigation safe zone is reserved before footer, captions, and bottom cards are placed.
+- If any estimate or collision check fails, revise the Page Spec before HTML generation by recomposing, reducing copy, reducing title size by 5-12%, changing archetype, or splitting the slide.
+- Do not use `overflow: hidden` on text containers to mask capacity failure. It is allowed only for decorative crop containers.
