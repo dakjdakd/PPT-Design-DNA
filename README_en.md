@@ -119,7 +119,7 @@ This distinction prevents two common problems: reference images being awkwardly 
 
 ### 1. Install the Skill
 
-Install this repository as a Codex Skill. When using it, mention `PPT-Design-DNA` directly, or describe that you want to generate a PPT style from reference images.
+Install this repository as a Codex Skill. When using it, mention `PPT-Design-DNA` directly, ask naturally to make/generate/beautify a PPT or presentation, or describe that you want to generate a PPT style from reference images.
 
 ### 2. Provide a Design Source
 
@@ -127,11 +127,11 @@ Provide one or more reference images, choose a saved Design Profile, or run no-i
 
 ### 3. Confirm Design DNA
 
-The skill shows a Design DNA tuning panel first. You can accept it or adjust style intensity, information density, motion direction, spacing, or risk level.
+The skill shows a Design DNA tuning panel first. You can accept it or adjust style intensity, information density, motion direction, spacing, or risk level. After confirmation, this Design DNA becomes the active candidate for the current deck; it is saved as a reusable Design Profile only if you explicitly choose to save it.
 
 ### 4. Provide Deck Requirements
 
-After the profile is saved, provide topic, audience, page count, content source, narrative style, output format, and image strategy.
+After the active Design DNA is confirmed, provide topic, audience, page count, content source, narrative style, output format, and image strategy. Saving a reusable profile is optional and never happens by default.
 
 ### 5. Generate the HTML Deck
 

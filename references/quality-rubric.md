@@ -214,6 +214,7 @@ For each slide:
 6. Check `mechanical_layout_preflight`: text estimates, title visual padding, card padding, and collision pairs.
 7. Check the navigation safe zone.
 8. Correct blocking issues in the source before delivery.
+9. For HTML decks, run `node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json` when Node is available, then repair and rerun until it returns PASS.
 ```
 
 The following are P0 issues:
@@ -240,6 +241,12 @@ The following are P0 issues:
 - any fixed absolute `top` placement for cards/body/footer that ignores calculated title/body required height
 - any slide missing required mechanical layout preflight when multiple major elements exist
 - any slide missing required `layout_box_budget` when multiple major elements exist
+- `missing_layout_box_budget` from `scripts/ppt-layout-guard.js`
+- `title_zone_collision` from `scripts/ppt-layout-guard.js`
+- `body_card_collision` from `scripts/ppt-layout-guard.js`
+- `nav_safe_zone_collision` from `scripts/ppt-layout-guard.js`
+- `unsafe_display_line_height` or `unsafe_tight_line_height` from `scripts/ppt-layout-guard.js`
+- `text_overflow_hidden` from `scripts/ppt-layout-guard.js`
 
 ## Source-Level Mechanical Preflight
 
@@ -264,3 +271,11 @@ Check the HTML/CSS source for obvious mechanical failures:
 - missing `layout_box_budget` for slides with multiple major elements.
 
 These checks do not require browser screenshots and must not reintroduce the removed screenshot-review-and-revision flow. Do not look for `playwright`, `playwright-core`, bundled Node module paths, or browser runtimes unless the user explicitly requests browser QA.
+
+The bundled source-level guard is the default HTML handoff gate when Node is available:
+
+```powershell
+node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json
+```
+
+If the guard reports P0 issues, repair the Page Spec or HTML and run it again. Do not replace this with page-count checks, manifest JSON parsing, class-name scans, or dependency probing. If Node is not available, manually apply the same source checks and say the script could not be run.

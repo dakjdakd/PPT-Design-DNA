@@ -126,6 +126,31 @@ D. Mix directions
 
 After the user chooses, show the mandatory Design DNA parameter panel.
 
+## Visual Preview Mechanism
+
+When the environment can write local HTML, no-image discovery should create three lightweight Design DNA previews before final DNA selection:
+
+```text
+outputs/<deck-slug>/previews/design-direction-a.html
+outputs/<deck-slug>/previews/design-direction-b.html
+outputs/<deck-slug>/previews/design-direction-c.html
+```
+
+Each preview is a single fixed-stage title slide or profile card, not a full deck. It should show:
+
+- typography mood
+- palette and surface/ink behavior
+- composition rhythm
+- visual density
+- motion feeling if easy to express in HTML/CSS
+- a real title or placeholder based on the user's topic, not internal labels
+
+Do not render process text such as "preview", "Design DNA option", file names, paths, or model notes on the slide itself. The assistant message may label the options outside the slide.
+
+When reference images are used, create one style-transfer preview slide when feasible. It should demonstrate the extracted visual language without embedding, tracing, redrawing, or approximating the reference subject.
+
+When saving a reusable profile, create a profile preview thumbnail or preview card only when the user asks for it or when it is needed for profile-library selection. Do not create thumbnail galleries by default.
+
 ## DNA From Discovery
 
 Even without images, generate complete Design DNA:

@@ -268,6 +268,36 @@ If any check fails, revise the source plan before writing HTML:
 
 Do not use `overflow: hidden` on text containers to hide failures. It is allowed only for decorative crop containers.
 
+## Source-Level Layout Guard
+
+For HTML decks, run the bundled static guard after writing the HTML when Node is available:
+
+```powershell
+node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json
+```
+
+This is a mechanical source check, not a browser QA step. It must not trigger Playwright lookup, installation, screenshots, bundled runtime probing, or dependency debugging.
+
+The guard blocks handoff on P0 findings:
+
+- `missing_layout_box_budget`
+- `title_zone_collision`
+- `body_card_collision`
+- `nav_safe_zone_collision`
+- `unsafe_display_line_height`
+- `unsafe_tight_line_height`
+- `text_overflow_hidden`
+
+Repair order:
+
+1. Move the next readable zone after the previous zone's calculated visual bottom plus gap.
+2. Reduce density by removing secondary copy, notes, legends, or extra cards.
+3. Reduce title size by 5-12% while preserving readability.
+4. Change the layout archetype.
+5. Split the slide.
+
+Do not fix guard failures with `z-index`, hidden overflow, compressed line-height, or by letting later DOM panels cover earlier text.
+
 ## Typography Spacing Safety
 
 Text-to-text collisions are blocking failures, even when no boxes overlap in CSS. Check the visual shape of glyphs, especially for large titles, Chinese characters, English descenders, and stroked/shadowed display type.

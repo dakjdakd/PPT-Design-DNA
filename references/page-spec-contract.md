@@ -636,3 +636,5 @@ Rules:
 - Navigation safe zone is reserved before footer, captions, and bottom cards are placed.
 - If any estimate or collision check fails, revise the Page Spec before HTML generation by recomposing, reducing copy, reducing title size by 5-12%, changing archetype, or splitting the slide.
 - Do not use `overflow: hidden` on text containers to mask capacity failure. It is allowed only for decorative crop containers.
+- The generated HTML must preserve enough zone information for the static guard: major content elements use `data-zone`, and the deck source or manifest keeps `layout_box_budget` for multi-element slides.
+- After HTML generation, `scripts/ppt-layout-guard.js` must be able to verify the Page Spec assumptions from source when Node is available. Any P0 guard failure means the Page Spec was wrong or the HTML drifted from it; revise and rerun.

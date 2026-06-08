@@ -1,6 +1,6 @@
 interface:
   display_name: "PPT Design DNA"
-  short_description: "Adapt Design DNA into animated HTML decks"
+  short_description: "Make PPT/slides with reusable Design DNA and animated HTML decks"
   brand_color: "#111827"
   default_prompt: "Use $PPT-Design-DNA to find or create a minimal reproducible Design DNA profile, reuse saved profiles/adapters when available, collect PPT requirements with numbered A/B/C/D option panels, adapt the style to my scenario, and generate a fixed-stage animated HTML deck under the hard output contract with no bulky default artifacts, fake image placeholders, unreadable text, or unsafe layering."
 

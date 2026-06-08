@@ -121,7 +121,7 @@ Design Adapter 用来处理这种冲突：
 
 ### 1. 安装 Skill
 
-把仓库作为 Codex Skill 安装到本地 skills 目录。使用时可以直接点名 `PPT-Design-DNA`，或者描述“我要根据参考图生成一套 PPT 风格”。
+把仓库作为 Codex Skill 安装到本地 skills 目录。使用时可以直接点名 `PPT-Design-DNA`，也可以直接说“做 PPT / 生成 PPT / 美化 PPT / 做汇报”，或者描述“我要根据参考图生成一套 PPT 风格”。
 
 ### 2. 提供设计来源
 
@@ -129,11 +129,11 @@ Design Adapter 用来处理这种冲突：
 
 ### 3. 确认 Design DNA
 
-项目会先展示 Design DNA 参数面板。你可以直接接受，也可以调整颜色强度、信息密度、动效节奏、页面留白、风格风险等参数。确认后，项目会保存 Design Profile。
+项目会先展示 Design DNA 参数面板。你可以直接接受，也可以调整颜色强度、信息密度、动效节奏、页面留白、风格风险等参数。确认后，这套 Design DNA 会作为本次 PPT 的 active candidate 使用；只有你明确选择保存时，才会保存为可复用 Design Profile。
 
 ### 4. 补充 PPT 需求
 
-保存 Profile 后，再提供主题、受众、页数、内容来源、叙事方式、输出格式和图片策略。这个顺序是刻意设计的：先确定视觉系统，再让内容进入正确的设计框架。
+确认 active Design DNA 后，再提供主题、受众、页数、内容来源、叙事方式、输出格式和图片策略。这个顺序是刻意设计的：先确定视觉系统，再让内容进入正确的设计框架。保存 Profile 是可选步骤，不会默认发生。
 
 ### 5. 生成 HTML Deck
 

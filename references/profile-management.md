@@ -69,6 +69,7 @@ Default deck generation policy:
 - Do not append usage history by default.
 - Do not create version snapshots for every generated deck.
 - Ask or offer profile saving only after the user has seen the generated deck, unless the user asked to save earlier.
+- If a generated deck used an unsaved active Design DNA candidate, the final handoff must offer a save decision. This preserves reuse without creating profile clutter.
 
 Save only when the user explicitly asks:
 
@@ -80,6 +81,17 @@ Save only when the user explicitly asks:
 - "以后还要复用这个设计"
 
 When the user approves saving after review, promote the active Design DNA candidate into `design-profiles/<profile-id>/` as `v001`, or create a new immutable version if it came from an existing saved profile and was tuned.
+
+Recommended final save prompt, localized to the user's language:
+
+```text
+If this deck feels right, do you want to save this Design DNA for reuse?
+A. Save as a reusable Design Profile
+B. Do not save yet
+C. Tune first, then save
+```
+
+Choosing B leaves the deck usable and does not create `design-profiles/`. Choosing C should ask what to tune before saving. Choosing A creates the minimal reproducible profile assets only after confirmation.
 
 ## Profile Index
 
@@ -392,7 +404,8 @@ reference images
 -> user confirm/tune
 -> use as unsaved active Design DNA candidate
 -> create deck
--> after user review, optionally save profile v001 only if approved
+-> final handoff asks whether to save
+-> save profile v001 only if user approves
 ```
 
 Creating a one-off deck without images:

@@ -1,6 +1,7 @@
 ---
 name: PPT-Design-DNA
-description: "Use when creating HTML-first presentation decks through Design DNA: extracting style from explicit visual reference images, reusing saved Design Profiles, or running no-image Design Discovery; tuning parameters; managing versioned profile assets; adapting profiles to presentation scenarios; planning blueprints and page specs; and generating fixed-stage animated HTML slides or optional PPTX. This is for DIY design-system-driven PPT creation, not template-filling."
+description: "Use when creating, improving, converting, or redesigning design-system-driven PPT, PowerPoint, PPTX, slides, decks, webpage PPT, HTML-first presentations, pitch decks, reports, defense decks, course/training decks, talks, keynotes, or presentations through Design DNA. Especially useful for distinctive visual style, style transfer from reference images/screenshots, reusable Design DNA/Profile assets, no-image Design Discovery, scenario adaptation, animated fixed-stage HTML slides, existing deck renovation, or optional PDF/PPTX export. This is for DIY design-system-driven PPT creation, not template filling."
+when_to_use: "Use by default for generic PPT/slides/presentation requests such as 做PPT, 生成PPT, 美化PPT, 帮我做个汇报, HTML PPT, PowerPoint, PPTX, pitch deck, defense deck, course deck, create slides, build a presentation, or redesign slides, unless the user explicitly asks for another slide skill."
 ---
 
 # PPT-Design-DNA
@@ -9,22 +10,26 @@ Build presentation decks by creating or reusing reusable Design DNA, managing it
 
 This skill is **not** a template-filling PPT generator. It should behave like an AI design architect: infer or discover a visual system, expose controllable parameters, warn about design/content conflicts, adapt the system when needed, then generate slides through structured constraints.
 
-Current version: **V3 - Design Adapter and Discovery**.
+Current version: **V3.1 - Trigger, Renovation, and Preview UX**.
 
-V3 includes:
+V3.1 includes:
 
 - V1: image-to-Design-DNA, parameter panel, HTML-first deck generation
 - V2: reusable profile library, profile details, version history, Design Diff, optional Design Prompt export, and compact usage pointers
 - V3: Design Adapter scenario variants, stronger conflict detection, visual-director advice, no-image Design Discovery, Image Asset Strategy, and stronger pre-generation visual safety constraints
+- V3.1: stronger trigger metadata, existing deck enhancement/conversion mode, Design DNA visual previews, requirement panel extraction, and failure recovery rules
 
 ## Core Chain
 
 Use this strict chain:
 
 ```text
-Profile library check: targeted read of canonical Design Profile index when relevant
+Mode routing: new deck, existing deck renovation/conversion, profile management, or skill-design discussion
+-> Profile library check: targeted read of canonical Design Profile index when relevant
+-> Existing deck intake when the user provides or references a PPT/PPTX/HTML deck
 -> Design source: saved profile/adapter, reference images, or no-image Design Discovery
 -> Design DNA
+-> Design DNA visual preview when discovery/extraction needs visual confirmation
 -> mandatory Design DNA parameter panel
 -> user tuning
 -> active Design DNA candidate, with optional user-approved save as a versioned Design Profile
@@ -42,15 +47,27 @@ Profile library check: targeted read of canonical Design Profile index when rele
 
 The main reusable asset is the **Design DNA Profile**. Scenario-specific adapters are derived profile variants. The primary deck output is HTML. PDF/PPTX is an optional export path only when requested.
 
+## When To Use / Trigger Scope
+
+Use this skill by default when the user asks for PPT or presentation work and does not explicitly request another slide skill.
+
+Common trigger phrases include:
+
+- 中文：做 PPT、生成 PPT、帮我做个汇报、做演示文稿、做幻灯片、网页 PPT、HTML PPT、美化 PPT、改 PPT、PPT 风格迁移、参考图做 PPT、根据截图做风格、答辩 PPT、路演 PPT、课程/培训课件、发布会 PPT、保存/复用这个 PPT 风格。
+- English: make a PPT, create slides, build a presentation, design a deck, HTML presentation, webpage slides, pitch deck, report deck, keynote, talk slides, PowerPoint, PPTX, beautify slides, redesign slides, use this screenshot/reference as style.
+
+If the request is generic PPT creation, prefer this skill when the user seems to want a distinctive, reusable, or design-system-driven result. If the user asks for a fixed template style such as magazine PPT or Swiss-style horizontal web deck, consider `guizang-ppt-skill`; if the user asks for a simpler zero-dependency HTML slide deck or PPTX conversion workflow, consider `frontend-slides`.
+
 ## First Response Behavior
 
-When the user wants to create or discuss a PPT-Design-DNA deck, first identify the current mode:
+When the user wants to create, improve, style, convert, or discuss a PPT / PowerPoint / PPTX / slides / deck / presentation, including generic requests such as "做PPT", "生成PPT", "帮我做个汇报", "美化PPT", "网页PPT", or "create slides", first identify the current mode:
 
 - **Reuse saved design**: user mentions saved designs, previous Design DNA, a profile name, "my designs", "use that style", or the workspace contains the canonical `design-profiles/profile-index.json`.
 - **Create from images**: user explicitly uploaded or pointed to reference images/screenshots.
 - **Reuse profile**: user selected a saved Design Profile or adapter.
 - **Manage profiles**: user wants to list, inspect, compare, export, or reuse profiles.
 - **No-image discovery**: user has no images and describes a target style, vibe, or named style.
+- **Enhance or convert existing deck**: user provides or references an existing PPT/PPTX/HTML deck and asks to beautify, redesign, preserve content, convert to HTML, or polish part of the deck.
 - **Modify deck/profile**: user wants to tune an existing style or deck.
 - **Spec/design discussion**: user is designing the skill itself; discuss schema/process without generating a deck.
 
@@ -82,18 +99,22 @@ Make the reference-image contract explicit:
 
 For deck creation, ask only the missing high-leverage choices. Avoid long generic questionnaires.
 
+For existing deck enhancement or conversion, inspect the current deck/content source first, classify the task, then choose or create a Design DNA source. Use [Existing Deck Enhancement](references/existing-deck-enhancement.md). Do not discard the user's existing content unless they explicitly ask for a rewrite.
+
 ## Interaction Gates
 
 V3 has strict gates:
 
 1. **Design Source Gate**: ensure explicit reference images, a saved profile/adapter, or no-image Design Discovery choices exist.
    - Apply the Reference Subject Firewall at this gate. Record allowed style traits separately from forbidden subject matter before extracting Design DNA.
-2. **Design DNA Panel Gate**: after extraction/discovery, show the parameter panel and stop for user confirmation/tuning. Do not ask page count, audience, purpose, content source, or export before this gate.
-3. **Active DNA Gate**: after confirmation/tuning, use the result as an active Design DNA candidate for this deck. Do not save or update `design-profiles/` by default.
-4. **PPT Requirement Gate**: only after the user accepts/tunes the active Design DNA or selects a saved profile/adapter, ask topic, audience, page count, content source, purpose, density, narrative style, and output needs.
-5. **Image Asset Gate**: after PPT requirements, ask whether the deck needs content images, AI-generated images, replaceable image slots, no images, or mixed handling. Do not treat earlier reference images as content images.
-6. **Adapter Gate**: after requirements are known, detect scenario conflicts and offer visual-first, dynamic-downgrade, or cell-division handling when needed.
-7. **Generation Handoff Gate**: after HTML/PPTX generation, deliver the requested artifact and report only concise paths, active Design DNA summary, saved profile/version only if applicable, and any known limitations.
+2. **Design Preview Gate**: when the design source is no-image discovery, show three Design DNA preview cards or single-slide title previews before the parameter panel. When the source is reference imagery, show one style-transfer preview slide when feasible. Optional profile preview thumbnails are created only when the user asks or explicitly saves a reusable profile.
+3. **Design DNA Panel Gate**: after extraction/discovery and any needed visual preview, show the parameter panel and stop for user confirmation/tuning. Do not ask page count, audience, purpose, content source, or export before this gate.
+4. **Active DNA Gate**: after confirmation/tuning, use the result as an active Design DNA candidate for this deck. Do not save or update `design-profiles/` by default.
+5. **PPT Requirement Gate**: only after the user accepts/tunes the active Design DNA or selects a saved profile/adapter, ask topic, audience, page count, content source, purpose, density, narrative style, and output needs.
+6. **Image Asset Gate**: after PPT requirements, ask whether the deck needs content images, AI-generated images, replaceable image slots, no images, or mixed handling. Do not treat earlier reference images as content images.
+7. **Adapter Gate**: after requirements are known, detect scenario conflicts and offer visual-first, dynamic-downgrade, or cell-division handling when needed.
+8. **Generation Handoff Gate**: after HTML/PPTX generation, deliver the requested artifact and report only concise paths, active Design DNA summary, saved profile/version only if applicable, and any known limitations.
+   - If the active Design DNA is an unsaved candidate, the handoff must also ask whether the user wants to save it as a reusable Design Profile after reviewing the deck. Do not create `design-profiles/` until the user explicitly chooses to save.
 
 If the user replies "default" at the Design DNA Panel Gate, treat it as accepting the extracted/discovered DNA for this deck, then proceed to PPT Requirement Discovery. Do not save a new Design Profile unless the user explicitly chooses a save option.
 
@@ -111,9 +132,19 @@ For profile-management requests, do not ask for reference images, deck topic, au
    - For each reference image, summarize allowed style traits separately from forbidden subject matter. The forbidden subject matter cannot become CSS/SVG/HTML illustrations, AI-generated visuals, icons, mascots, or decorative motifs later.
    - See [Core Workflow](references/workflow.md) and [Design Discovery](references/design-discovery.md).
 
+1B. **Existing Deck Enhancement Or Conversion**
+   - Use when the user provides or references an existing `.ppt`, `.pptx`, HTML deck, screenshots of slides, or a current deck folder and asks to beautify, redesign, convert, polish, preserve content, or update only selected slides.
+   - First extract or inspect current content, assets, slide count, visual style, and constraints; then classify the task as preserve-content redesign, HTML conversion, partial polish, content rewrite, or visual-system migration.
+   - Choose the design source after inspection: existing deck style, user reference images, saved profile/adapter, or no-image Design Discovery.
+   - Create a renovation Design Contract before editing or regenerating slides.
+   - See [Existing Deck Enhancement](references/existing-deck-enhancement.md).
+
 2. **Style Extraction Or Discovery**
    - Extract or create Design DNA across five required layers: Mood, Composition, Visual, Content Strategy, Presentation.
    - Do not reduce style to colors, fonts, and layout only.
+   - For no-image discovery, generate three visual Design DNA previews or three single-slide title previews before final DNA selection.
+   - For reference-image extraction, create one style-transfer preview slide when feasible to confirm visual interpretation before full deck planning.
+   - For reusable profiles, create profile preview thumbnails only when explicitly requested or when saving a profile.
    - See [Design DNA Schema](references/design-dna-schema.md).
 
 3. **Design DNA Panel**
@@ -189,6 +220,7 @@ For profile-management requests, do not ask for reference images, deck topic, au
     - Enforce visual safety: no generic empty image slots, no unreadable text/surface pairs, no decorative layers covering content, and no unreserved navigation overlap.
     - Enforce the Reference Subject Firewall: CSS/SVG/HTML visuals can express style, but cannot depict subjects or subject parts from style reference images.
     - Enforce Mechanical Layout Preflight and `layout_box_budget` before writing HTML for each slide: estimate text fit, reserve visual-effect/descender padding, reserve navigation safe zones, and check zone collisions. If either gate fails, recompose, reduce copy, reduce title size slightly, move the next zone, change layout, or split the slide before generating.
+    - After writing HTML, run the source-level layout guard when Node is available: `node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json`. This is not browser QA and does not use Playwright. A P0 result blocks handoff; revise the HTML/Page Specs and rerun until the guard returns PASS.
     - Use purposeful motion derived from Design DNA; avoid one generic animation recipe for every slide.
     - Do not use reference images as slide assets unless explicitly approved as content.
     - See [HTML Generation Rules](references/html-generation-rules.md) and [Visual Safety Rules](references/visual-safety-rules.md).
@@ -196,6 +228,9 @@ For profile-management requests, do not ask for reference images, deck topic, au
 13. **Final Handoff**
     - Deliver the requested HTML deck and optional PDF/PPTX export.
     - Keep final output concise: artifact path, active Design DNA summary, saved Design Profile/version only if one was selected or explicitly saved, adapter strategy if used, and known limitations.
+    - If the active Design DNA is unsaved, end the handoff with an explicit save decision prompt in the user's language: `If this deck feels right, do you want to save this Design DNA for reuse? A. Save as Design Profile B. Do not save yet C. Tune first, then save`. This is mandatory because users may want to reuse the style later.
+    - The save prompt is not permission to save automatically. Create or update `design-profiles/` only after the user answers with an explicit save choice.
+    - Do not claim layout safety from page-count, manifest, or class-name checks. Final handoff requires the source-level layout guard to pass for HTML decks when Node is available; if Node is unavailable, perform the same checks manually from source and state that the script could not be run.
     - End at the generated artifact; this V3 flow does not include a post-generation browser QA stage.
     - Do not look for, install, import, or run Playwright/browser automation in the default flow. If browser QA is unavailable or unrequested, complete source-level checks only and do not mention dependency probing as a workflow step.
     - See [Quality Rubric](references/quality-rubric.md) for pre-generation and source-level quality constraints.
@@ -271,72 +306,7 @@ Forbidden behavior:
 - Do not ask the user to write one free-form sentence as the main path, such as `主题：AI 视觉趋势分享，6页，给同学看，HTML`.
 - Do not merge the Design DNA confirmation step and PPT requirements into one questionnaire.
 
-Standard Chinese panel:
-
-```text
-Design DNA：<dna-name>（当前仅用于本次 PPT；满意后可保存为 Design Profile）
-现在进入 PPT 需求阶段。请直接回复选项编号即可，例如：1A 2E 3B 4C 5A 6D 7B 8A。
-
-1. PPT 主题？
-A. AI 产品 / 项目展示
-B. 研究、论文或学术主题
-C. 商业计划 / 创业路演
-D. 课程、教程或培训内容
-E. 个人作品集 / 工作展示
-F. 其他 / 自定义
-
-2. 这份 PPT 的用途？
-A. 汇报
-B. 路演
-C. 课程 / 教学
-D. 答辩
-E. 培训
-F. 公开演讲
-G. 其他 / 自定义
-
-3. 目标受众？
-A. 老师
-B. 同学
-C. 客户
-D. 团队
-E. 投资人
-F. 公开观众
-G. 其他 / 自定义
-
-4. 页数？
-A. 自动规划
-B. 5-7 页
-C. 8-12 页
-D. 15-20 页
-E. 自定义页数
-
-5. 内容来源？
-A. 我提供材料
-B. AI 根据主题组织 / 生成
-C. 基于某个本地文件或粘贴文档
-D. 混合：我给材料，AI 帮我整理
-E. 其他 / 自定义
-
-6. 信息密度？
-A. 极简，适合演讲
-B. 平衡，适合展示和阅读
-C. 信息密集，适合汇报 / 答辩
-D. 分章节自适应
-
-7. 图片策略？
-A. 不放内容图，用 Design DNA 视觉、排版、图形和动效完成
-B. 我会提供内容图片，围绕图片设计页面
-C. 预留可替换图片位，但不要做丑的空框
-D. AI 生成概念 / 氛围视觉图
-E. 混合
-
-8. 输出格式？
-A. 只要 HTML
-B. HTML + PPTX
-C. HTML + PDF
-D. HTML + PDF + PPTX
-E. 先看 HTML，再决定是否导出
-```
+Use the standard panels in [Requirement Panels](references/requirement-panels.md). Read that file when entering PPT Requirement Discovery or when the user asks to see/edit the intake choices.
 
 ## Image Asset Strategy
 
@@ -370,6 +340,17 @@ Do not clutter the final response with internal artifact lists. `design-contract
 When managing profiles, provide only the requested profile/library information: list, detail, diff, adapter, export path, or usage history. Do not generate a deck unless explicitly requested.
 
 When only discussing the skill design, do not generate PPT files unless the user explicitly asks.
+
+## Failure Recovery And Fallbacks
+
+Use these defaults when generation or export hits a blocker:
+
+- **Layout guard P0**: return to Page Specs and layout budget, repair composition, split slides, reduce copy, or adjust zones; do not patch around the failure with blind CSS tweaks.
+- **Node unavailable**: perform the same source-level checks manually from HTML/CSS/Page Specs, state that the layout guard could not be run, and keep the deck in HTML.
+- **PPTX export unavailable**: keep HTML as the source artifact, offer PDF export or manual PowerPoint recreation notes only if useful, and do not claim PPTX was produced.
+- **Only a vague request such as "做PPT"**: enter Design Discovery or saved-profile selection first; do not start a long PPT questionnaire.
+- **User says "default" or is in a hurry**: choose a recommended no-image Design Discovery direction, balanced density, HTML-only output, and no reusable profile save unless explicitly requested.
+- **Existing deck extraction fails**: preserve the original file untouched, summarize what could not be read, and ask for a different source representation only if screenshots, pasted outline, or extracted text cannot be discovered locally.
 
 ## Non-Negotiables
 

@@ -317,6 +317,29 @@ Rules:
 - If the estimate fails, revise the Page Spec first: recompose, reduce copy, reduce title size by 5-12%, change archetype, or split the slide.
 - Do not use `overflow: hidden` on text containers to hide overflow. It is allowed only for decorative crop containers.
 
+## Static Layout Guard
+
+After HTML is written, run the bundled source-level guard when Node is available:
+
+```powershell
+node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json
+```
+
+This guard has no external dependencies and does not use Playwright, screenshots, browser automation, or bundled browser runtimes. It parses the HTML/CSS source, reads `data-zone` elements, estimates title/body/card visual height, checks zone clearance, checks the navigation safe zone, and flags unsafe line-height and text `overflow:hidden` hazards.
+
+Guard behavior:
+
+- `PASS` means the source-level mechanical checks did not find blocking issues.
+- `FAIL` with any P0 issue blocks final handoff.
+- `missing_layout_box_budget` means a multi-element slide has zones but no numeric layout contract; add the budget or revise the source.
+- `title_zone_collision` means the next readable zone starts before title visual bottom plus required gap.
+- `body_card_collision` means cards begin before body text has visual clearance.
+- `nav_safe_zone_collision` means card/body/footer content enters the reserved navigation area.
+- `unsafe_display_line_height` or `unsafe_tight_line_height` means title/body spacing must be fixed by increasing line-height, reducing size, moving zones, or splitting the slide.
+- `text_overflow_hidden` means a text/content selector is hiding capacity failure.
+
+When the guard fails, use the JSON report as the repair prompt, revise Page Specs or HTML, then rerun the guard. Do not claim that page count, manifest validity, class references, or file existence is layout QA.
+
 ## Layout Capacity Gate
 
 Layout archetypes are intent labels and capacity checks, not templates. They help decide whether a slide is trying to carry too much, while leaving the visual arrangement open.
@@ -622,6 +645,9 @@ Before final handoff:
 - verify no scrollbars inside slides
 - verify no overlap or overflow
 - verify `mechanical_layout_preflight` passed for slides with multiple major elements
+- verify `layout_box_budget` exists and matches the generated HTML zones for slides with multiple major elements
+- run the static layout guard when Node is available: `node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json`
+- treat any layout guard P0 as blocking; revise the HTML/Page Specs and rerun until the guard returns PASS
 - verify no fake image placeholders or meaningless repeated side blocks
 - verify all text/surface pairs are readable
 - verify decorative/media layers do not cover text at rest

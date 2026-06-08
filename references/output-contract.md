@@ -36,6 +36,7 @@ project-root/
     <deck-slug>/
       index.html
       deck-manifest.json
+      layout-guard-report.json
       assets/
         images/
         fonts/
@@ -54,6 +55,7 @@ Only create folders when needed:
 - Create `assets/` only when user-approved content images, generated images, fonts, or media are used.
 - Create `exports/` only when PDF/PPTX is requested.
 - Create `specs/` only when the user asks to inspect, edit, audit, or regenerate from internal specs.
+- Create `layout-guard-report.json` when the static HTML layout guard is run; it is a compact QA artifact for the generated deck, not a reusable Design Profile.
 - Create `adapters/` only when an adapter exists.
 - Create `diffs/` only when a version or adapter has changed.
 
@@ -77,6 +79,7 @@ Do not create these by default:
 
 - copied source/reference images
 - thumbnail galleries
+- profile preview cards or preview thumbnails
 - long profile reports
 - `usage-log.json`
 - `exports/design-prompt.md`
@@ -84,6 +87,15 @@ Do not create these by default:
 - human-readable `*.md` diffs
 
 Create optional assets only when the user asks for them or when they are necessary for a specific workflow.
+
+If a profile preview is requested, keep it lightweight:
+
+```text
+design-profiles/<profile-id>/preview.html
+design-profiles/<profile-id>/preview.svg
+```
+
+The preview should show palette, typography mood, composition rhythm, suitable scenarios, risky scenarios, and one compact cover-like visual sample. It must not copy reference-image subjects, store reference images, or create a thumbnail gallery by default.
 
 Usage history is not required to reproduce a style. Do not update `last_used_at`, `last_output_path`, or any other `design-profiles/` file during normal deck generation unless the user explicitly wants profile tracking or has asked to save/manage the profile.
 
@@ -174,7 +186,17 @@ Mention only:
 - adapter id/version and strategy, if used
 - optional PDF/PPTX paths
 - known limitations
+- mandatory save decision prompt when the active Design DNA is unsaved
 
-After the user has reviewed the deck, it is acceptable to ask whether they want to save the current active Design DNA as a reusable profile. Do not save it preemptively.
+After the user has reviewed the deck, ask in the user's language whether they want to save the current active Design DNA as a reusable profile when it is still unsaved. Do not save it preemptively.
+
+Recommended prompt:
+
+```text
+If this deck feels right, do you want to save this Design DNA for reuse?
+A. Save as a reusable Design Profile
+B. Do not save yet
+C. Tune first, then save
+```
 
 Do not list internal specs or optional profile files unless the user asks.

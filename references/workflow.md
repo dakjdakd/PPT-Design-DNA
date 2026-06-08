@@ -1,6 +1,6 @@
 # Core Workflow
 
-V3 is a complete Design DNA loop. It can create a deck from reference images, a saved profile, or no-image Design Discovery, but deck generation starts from an accepted active Design DNA candidate. Saving that candidate as a reusable Design Profile is optional and requires explicit user approval.
+V3.1 is a complete Design DNA loop. It can create a deck from reference images, a saved profile, no-image Design Discovery, or an existing deck renovation/conversion request, but deck generation starts from an accepted active Design DNA candidate. Saving that candidate as a reusable Design Profile is optional and requires explicit user approval.
 
 V3 is HTML-first and Design-DNA-first. The profile library is useful for reuse, but it must not become an automatic archive for every generation. The deck is authored as fixed-stage animated HTML, then optionally exported to PDF/PPTX only if the user asks.
 
@@ -11,26 +11,34 @@ Before asking for new reference images, check whether the user is likely trying 
 The order is strict:
 
 ```text
-1. User provides a design source:
+0. Route the request:
+   A. new deck
+   B. existing deck enhancement/conversion
+   C. profile management
+   D. skill-design discussion
+1. User provides or selects a design source:
    A. saved Design Profile or adapter
    B. reference images
    C. no-image Design Discovery choices
-2. Extract or generate Design DNA
-3. Show the Design DNA parameter panel
-4. User confirms/tunes the active Design DNA candidate; optionally saves it as a versioned asset only by explicit choice
-5. Ask PPT task questions: topic, audience, page count, content source, purpose, output
-6. Ask content image intent and plan Image Asset Strategy
-7. Check design-scenario fit
-8. Create or select an optional scenario Adapter
-9. Generate Design Contract
-10. Generate Blueprint
-11. Generate Page Specs
-12. Generate fixed-stage animated HTML deck
-13. Optional PDF/PPTX export if requested
-14. Final handoff
+   D. existing deck style after inspection
+2. If an existing deck is involved, inspect/extract current content and classify the renovation task
+3. Extract or generate Design DNA
+4. Show visual previews when needed: three no-image previews, one reference style-transfer preview, or an optional profile preview card
+5. Show the Design DNA parameter panel
+6. User confirms/tunes the active Design DNA candidate; optionally saves it as a versioned asset only by explicit choice
+7. Ask PPT task questions: topic, audience, page count, content source, purpose, output
+8. Ask content image intent and plan Image Asset Strategy
+9. Check design-scenario fit
+10. Create or select an optional scenario Adapter
+11. Generate Design Contract
+12. Generate Blueprint
+13. Generate Page Specs
+14. Generate fixed-stage animated HTML deck
+15. Optional PDF/PPTX export if requested
+16. Final handoff
 ```
 
-Do not ask "topic / audience / page count / purpose / content source / PPTX export" before step 4. Those questions belong to PPT Requirement Discovery, not Design Intake.
+Do not ask "topic / audience / page count / purpose / content source / PPTX export" before the active Design DNA candidate is accepted, unless the user is explicitly asking to inspect or classify an existing deck source. Those questions belong to PPT Requirement Discovery, not Design Intake.
 
 Do not ask how slide images should appear before step 5 unless the user explicitly says a provided image is slide content. Image intent is not Design Intake; it is a deck-planning choice after the active Design DNA exists.
 
@@ -44,12 +52,30 @@ Use source-level checks instead:
 - Page Specs
 - `visual_subject_policy`
 - `mechanical_layout_preflight`
+- `layout_box_budget`
+- `scripts/ppt-layout-guard.js` after HTML is written, when Node is available
 - Quality Rubric P0 checks
 - static HTML/CSS/JS completeness checks when useful
 
 If the user explicitly asks for browser QA and the environment already has a working browser automation tool, it may be used as an optional advanced check. If it is missing, skip browser QA and say it was skipped; do not debug dependencies as part of the deck workflow.
 
 ## Phase 1: Design Intake
+
+### Existing Deck Intake
+
+If the user asks to beautify, redesign, convert, preserve, or partially polish an existing PPT/PPTX/HTML deck, read [Existing Deck Enhancement](existing-deck-enhancement.md) and inspect the source before choosing the final design source.
+
+Use this mode for requests like:
+
+```text
+帮我美化这个 PPT
+把这个 PPTX 改成网页 PPT
+这个 HTML deck 太丑，按某风格重做
+保留内容，重做视觉
+只改封面和章节页
+```
+
+After inspection, classify the task as preserve-content redesign, HTML conversion, partial polish, content rewrite, or style migration. Keep the original source untouched.
 
 ### Existing Profile Lookup
 
@@ -357,6 +383,17 @@ Only save a reusable Design Profile when:
 - the user explicitly says "save this style", "save this profile", "保存这个风格", or similar before generation
 - the user reviews the final deck and says they are satisfied and want to save the style for reuse
 
+Final handoff must offer saving when the current deck used an unsaved active Design DNA candidate. This is not optional wording. The assistant should ask a compact decision question in the user's language after the artifact and layout-check status:
+
+```text
+If this deck feels right, do you want to save this Design DNA for reuse?
+A. Save as a reusable Design Profile
+B. Do not save yet
+C. Tune first, then save
+```
+
+Do not create `design-profiles/` before the user answers with an explicit save choice.
+
 When saving is explicitly requested, write the minimal reproducible profile assets below.
 
 Profile fields:
@@ -394,7 +431,7 @@ Final output:
 
 Planning artifacts such as Design Contract, PPT Blueprint, and Page Specs are required steps, but they are transient by default. Persist them under `outputs/<deck-slug>/specs/` only when the user asks to inspect, edit, audit, or regenerate from specs.
 
-In the final response, mention only the final deck, active Design DNA summary, reusable profile only if saved or selected, current profile/adapter version only if applicable, adapter strategy if used, and known limitations unless the user asks for internal specs.
+In the final response, mention only the final deck, active Design DNA summary, reusable profile only if saved or selected, current profile/adapter version only if applicable, adapter strategy if used, known limitations, and the mandatory save decision prompt when the active Design DNA is unsaved. Do not list internal specs unless the user asks for them.
 
 For full profile rules, see [Profile Management](profile-management.md).
 
@@ -871,5 +908,23 @@ Use [HTML Generation Rules](html-generation-rules.md) and [Visual Safety Rules](
 ## Phase 13: Optional Export And Final Handoff
 
 If the user requested PDF/PPTX, export from the generated HTML when feasible and mention any motion/fidelity limits. If the user requested HTML only, stop at the generated HTML deck.
+
+Before final handoff for an HTML deck, run the source-level layout guard when Node is available:
+
+```powershell
+node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json
+```
+
+## Failure Recovery
+
+- If the layout guard returns P0, revise Page Specs and layout budgets first; do not hide the failure with blind CSS changes.
+- If Node is unavailable, manually perform the source-level layout checks and state that the script could not be run.
+- If PPTX export fails or is unavailable, keep HTML as the source artifact and provide PDF/manual export alternatives only when useful.
+- If the user only says "做PPT" or gives a similarly vague request, enter saved-profile selection or no-image Design Discovery instead of asking the full PPT questionnaire.
+- If the user says "default", choose a recommended discovery direction, balanced density, HTML-only output, and no reusable profile save.
+
+This guard is a static source check, not browser QA. It must not trigger Playwright lookup, installation, bundled runtime probing, screenshots, or dependency debugging. If the guard reports P0 issues such as `missing_layout_box_budget`, `title_zone_collision`, `body_card_collision`, `nav_safe_zone_collision`, `unsafe_display_line_height`, `unsafe_tight_line_height`, or `text_overflow_hidden`, revise the Page Spec or HTML and rerun the guard. Do not deliver the deck until it returns PASS. If Node is unavailable, apply the same checks manually from source and state that the script could not be run.
+
+If the active Design DNA was not saved or selected from an existing profile, final handoff must include the save decision prompt in the user's language. Keep it short and action-oriented. The default is no save until the user explicitly chooses option A.
 
 End at the requested generated artifact. V3 does not include a post-generation browser QA stage in its default flow. Do not probe for Playwright, `playwright-core`, browser runtimes, bundled Node modules, or dependency fixes unless the user explicitly requests browser QA.
