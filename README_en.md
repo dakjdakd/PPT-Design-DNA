@@ -12,6 +12,22 @@ PPT-Design-DNA is a **Design-DNA-driven skill for HTML-first presentation decks*
 
 ![PPT-Design-DNA hero preview](assets/readme/hero-preview-en.png)
 
+## Delivery Quality Gate
+
+PPT-Design-DNA now treats source-level HTML layout validation as a hard delivery gate, not as an optional preview step.
+
+- Deck generation must start with a detailed Design DNA panel, not jump directly from a reference image or vague topic to a finished deck.
+- Presentation topic, audience, page count, content source, narrative style, and image strategy are collected only after the active Design DNA is confirmed.
+- Each generated slide needs `mechanical_layout_preflight`, `layout_box_budget`, and guard-readable `data-zone` markers so title, body, card, footer, and navigation regions can be checked from source.
+- CJK and mixed CJK/Latin display headlines need planned semantic line breaks. Browser auto-wrap must not create orphan final lines such as a single Chinese character.
+- Before delivering an HTML deck, run:
+
+```powershell
+node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json
+```
+
+Final handoff must include `Layout guard: PASS - <output-dir>/layout-guard-report.json`. Page-count checks, manifest checks, local preview servers, screenshots, or Playwright are not substitutes for the source-level guard.
+
 ## 🎨 Demos
 
 The intended reading path is:
@@ -204,9 +220,9 @@ Key files:
 
 ## 📌 Current Version
 
-Current version: **V3 - Design Adapter and Discovery**
+Current version: **V3.1 - Trigger, Renovation, Preview UX, and Delivery Guard**
 
-V3 includes:
+V3.1 includes:
 
 - Design DNA extraction from reference images.
 - No-image Design Discovery.
@@ -214,6 +230,7 @@ V3 includes:
 - Design Adapter scenario variants.
 - Image Asset Strategy.
 - Stronger visual safety constraints.
+- Source-level layout guard delivery lock for HTML decks.
 - HTML-first deck generation, with optional PDF/PPTX export.
 
 ## 📜 License

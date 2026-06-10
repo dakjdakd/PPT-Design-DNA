@@ -81,6 +81,9 @@ Mechanical layout failures:
 - a large side visual has no approved content role and no abstract surrogate strategy
 - CJK display title glyphs collide because of Latin poster line-height, negative tracking, or missing reserved title-zone height
 - huge title, subtitle, divider, body, card, or footer text visually touch because the text stack has no real clearance
+- CJK or mixed Chinese/Latin display titles rely on browser auto-wrap and produce an orphan line, such as a single Chinese character or 1-2 character fragment on the last line
+- large display titles use `word-break: break-all`, `overflow-wrap: anywhere`, negative tracking, or compressed line-height to force text into a zone
+- a multi-element slide omits guard-readable `data-zone` markers, so the source-level layout guard cannot verify title/body/card/footer spacing
 
 ## Preferred Generation Corrections
 
@@ -126,6 +129,8 @@ Common corrections:
 - replace_unsafe_absolute_top_with_chained_zone_budget
 - enforce_display_title_line_height_floor
 - split_dense_evidence_slide
+- rewrite_or_rebalance_headline_lines
+- add_guard_readable_data_zones
 
 Example:
 
@@ -232,6 +237,8 @@ The following are P0 issues:
 - any fake image placeholder in final output
 - any slide where navigation covers content
 - any CJK display title using unsafe line-height or negative tracking that causes visual collision
+- any CJK or mixed CJK/Latin display title with an orphan final line or ugly 1-2 character title line
+- any display title relying on `word-break: break-all`, `overflow-wrap: anywhere`, or browser-only wrapping instead of planned headline lines
 - any title/card/body/visual overlap caused by missing dynamic zone budget
 - any title/body/card/footer/nav overlap caused by missing or failed `layout_box_budget`
 - any large multi-line English serif/display title using `line-height < 1.06`
@@ -242,6 +249,15 @@ The following are P0 issues:
 - any slide missing required mechanical layout preflight when multiple major elements exist
 - any slide missing required `layout_box_budget` when multiple major elements exist
 - `missing_layout_box_budget` from `scripts/ppt-layout-guard.js`
+- `missing_data_zones` from `scripts/ppt-layout-guard.js`
+- `cjk_orphan_line` from `scripts/ppt-layout-guard.js`
+- `estimated_cjk_orphan_line` from `scripts/ppt-layout-guard.js`
+- `ugly_cjk_short_title_line` from `scripts/ppt-layout-guard.js`
+- `unsafe_cjk_display_line_height` from `scripts/ppt-layout-guard.js`
+- `unsafe_display_selector_line_height` from `scripts/ppt-layout-guard.js`
+- `negative_display_letter_spacing` from `scripts/ppt-layout-guard.js`
+- `unsafe_display_word_break` from `scripts/ppt-layout-guard.js`
+- `unsafe_text_block_gap` from `scripts/ppt-layout-guard.js`
 - `title_zone_collision` from `scripts/ppt-layout-guard.js`
 - `body_card_collision` from `scripts/ppt-layout-guard.js`
 - `nav_safe_zone_collision` from `scripts/ppt-layout-guard.js`
@@ -256,9 +272,11 @@ Check the HTML/CSS source for obvious mechanical failures:
 
 - `color: white` or `color: #fff` inside light card, stat, badge, label, caption, or bright accent components without an explicit compatible surface.
 - `.card`, `.stat-card`, `.badge`, `.caption`, `.label`, chart labels, and formula labels missing explicit `color`.
-- CJK display selectors using `line-height < 0.98`, negative `letter-spacing`, or Latin poster settings such as `.8`, `.85`, or `.9`.
+- CJK display selectors using `line-height < 1.02`, negative `letter-spacing`, or Latin poster settings such as `.8`, `.85`, or `.9`.
 - English serif/display title selectors using `line-height < 1.02`, or `< 1.06` when the title can wrap beyond one line.
 - Any display title using `line-height < 0.95` while body text, cards, dividers, or frames are below it.
+- CJK/mixed display titles missing planned semantic line breaks, or containing explicit `<br>` lines with only one Chinese character or a 1-2 character fragment.
+- Display title selectors using `word-break: break-all` or `overflow-wrap: anywhere`.
 - `.body-note`, `.cards`, `.decision-grid`, `.two-column`, or similar content blocks using independent absolute `top` values with no `layout_box_budget` or chained zone rule.
 - Cards, panels, grids, or frames appearing later in the DOM where their zone intersects earlier title/body zones.
 - visible placeholder language or blank boxes such as `drop image here`, plus-sign empty frames, or meaningless right-side image areas.
@@ -269,6 +287,7 @@ Check the HTML/CSS source for obvious mechanical failures:
 - missing `visual_subject_policy` when reference images included identifiable subjects.
 - missing `mechanical_layout_preflight` for slides with multiple major elements.
 - missing `layout_box_budget` for slides with multiple major elements.
+- missing `data-zone` markers on major readable elements in a generated HTML deck.
 
 These checks do not require browser screenshots and must not reintroduce the removed screenshot-review-and-revision flow. Do not look for `playwright`, `playwright-core`, bundled Node module paths, or browser runtimes unless the user explicitly requests browser QA.
 

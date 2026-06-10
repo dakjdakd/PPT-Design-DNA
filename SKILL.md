@@ -238,16 +238,19 @@ For profile-management requests, do not ask for reference images, deck topic, au
     - Enforce the Reference Subject Firewall: CSS/SVG/HTML visuals can express style, but cannot depict subjects or subject parts from style reference images.
     - Enforce Mechanical Layout Preflight and `layout_box_budget` before writing HTML for each slide: estimate text fit, reserve visual-effect/descender padding, reserve navigation safe zones, and check zone collisions. If either gate fails, recompose, reduce copy, reduce title size slightly, move the next zone, change layout, or split the slide before generating.
     - After writing HTML, run the source-level layout guard when Node is available: `node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json`. This is not browser QA and does not use Playwright. A P0 result blocks handoff; revise the HTML/Page Specs and rerun until the guard returns PASS.
+    - Do not replace the guard command with page-count checks, manifest checks, server startup, browser preview, screenshots, or "file exists" checks. Those may be extra checks only after the guard has run.
     - Use purposeful motion derived from Design DNA; avoid one generic animation recipe for every slide.
     - Do not use reference images as slide assets unless explicitly approved as content.
     - See [HTML Generation Rules](references/html-generation-rules.md) and [Visual Safety Rules](references/visual-safety-rules.md).
 
 13. **Final Handoff**
     - Deliver the requested HTML deck and optional PDF/PPTX export.
-    - Keep final output concise: artifact path, active Design DNA summary, saved Design Profile/version only if one was selected or explicitly saved, adapter strategy if used, and known limitations.
+    - Hard delivery lock for HTML decks: before final response, there must be an actual command result from `node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json`, unless Node is genuinely unavailable. Do not say "I will run it" and then hand off; run it first.
+    - Keep final output concise: artifact path, layout guard status and report path, active Design DNA summary, saved Design Profile/version only if one was selected or explicitly saved, adapter strategy if used, and known limitations.
     - If the active Design DNA is unsaved, end the handoff with an explicit save decision prompt in the user's language: `If this deck feels right, do you want to save this Design DNA for reuse? A. Save as Design Profile B. Do not save yet C. Tune first, then save`. This is mandatory because users may want to reuse the style later.
     - The save prompt is not permission to save automatically. Create or update `design-profiles/` only after the user answers with an explicit save choice.
-    - Do not claim layout safety from page-count, manifest, or class-name checks. Final handoff requires the source-level layout guard to pass for HTML decks when Node is available; if Node is unavailable, perform the same checks manually from source and state that the script could not be run.
+    - Do not claim layout safety from page-count, manifest, class-name checks, browser preview, local server response, or screenshot inspection. Final handoff requires the source-level layout guard to pass for HTML decks when Node is available; if Node is unavailable, perform the same checks manually from source and state that the script could not be run.
+    - If the guard report is missing, failed, or was not generated in the output directory, the deck is not deliverable. Fix the HTML/Page Specs and rerun the guard before final handoff.
     - End at the generated artifact; this V3 flow does not include a post-generation browser QA stage.
     - Do not look for, install, import, or run Playwright/browser automation in the default flow. If browser QA is unavailable or unrequested, complete source-level checks only and do not mention dependency probing as a workflow step.
     - See [Quality Rubric](references/quality-rubric.md) for pre-generation and source-level quality constraints.
@@ -290,6 +293,10 @@ Reference Subject Firewall is a P0 safety category. A style reference can teach 
 
 Typography spacing is a mandatory visual safety category. Large titles must reserve visual clearance for Chinese glyph height, English descenders, stroke, shadow, glow, and offset layers. Keep spacing compact but safe: do not solve squeezed text by making the whole deck loose; instead use safe line-height, small visual-effect padding, controlled gaps, title splitting, or a slight font-size reduction.
 
+Chinese and mixed Chinese/Latin headline breaking is also a P0 visual safety category. A generated deck must not allow ugly browser auto-wrapping such as a single Chinese character or 1-2 character fragment on the last line (`要`, `的`, `计划`, etc.). Before authoring HTML, manually plan display-title line breaks by meaning and visual balance. If a title would orphan a character, reduce font size by 5-12%, widen the title zone, rewrite the title, split it across slides, or choose another composition. Do not use tight line-height, negative tracking, `text-wrap: balance` alone, or hidden overflow as the fix.
+
+Readable text blocks need visible breathing room in every direction. Adjacent title/subtitle/body/card/footer text cannot merely avoid CSS box overlap; the glyphs must have visible air. At 1920x1080, keep at least 44-72px after a huge title before subtitle/body text, 34-56px after section titles before body/cards, 18-32px between eyebrow and title, 24px minimum between ordinary text blocks, and 28-44px around dividers. If text feels crowded, reduce copy, split the slide, or recompose; do not keep shrinking gaps until words visually touch.
+
 Surface Pair, Zone Budget, and Layout Capacity are P0 mechanical constraints, not aesthetic suggestions. They protect freedom by preventing mechanical failures; they must not turn the deck into a fixed template system:
 
 - Every readable region must declare a `surface_token` and `ink_token`. Cards, labels, badges, stat blocks, captions, chart labels, and formula labels cannot inherit text color from the slide.
@@ -300,7 +307,9 @@ Surface Pair, Zone Budget, and Layout Capacity are P0 mechanical constraints, no
 - Layout Capacity is a freedom-preserving capacity check, not a template rule. It says what a page type can safely carry; it does not dictate where everything must go.
 - Mechanical Layout Preflight plus `layout_box_budget` is required before HTML authoring. Estimate text boxes, CJK line-height, English descenders, stroke/shadow/offset expansion, card padding, and nav safe-zone occupancy. A failed estimate must trigger recomposition or slide splitting, not hidden overflow.
 - `layout_box_budget` must calculate each readable zone's required height before placing the next zone. Do not place body notes, cards, dividers, footers, or navigation with independent absolute `top` guesses that ignore title/body height.
+- Every major readable element in the generated HTML must expose `data-zone` on the real slide element (`section`, `article`, or `div` with class `slide`) so the static guard can inspect it. A deck that omits zones or `layout_box_budget` is not considered checked.
 - Large English serif display titles use `line-height >= 1.02`; if they wrap beyond one line, use `line-height >= 1.06` and reserve descender padding for `g/y/p/q/j`. `line-height < 0.95` is allowed only for a single-line decorative title with no content directly below.
+- CJK or mixed CJK/Latin display titles use `line-height >= 1.02`, preferably `1.04-1.12`, `letter-spacing: 0`, and planned semantic line breaks. Any orphan short line or visibly cramped title stack is P0.
 - DOM order is not a collision fix. Later cards, grids, panels, or frames must not paint over earlier title/body text, and `z-index` must not be used to hide a failed content layout.
 
 ## Option-First Requirement Collection

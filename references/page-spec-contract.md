@@ -105,6 +105,7 @@ Required fields:
 - surface_pair_plan
 - typography_spacing
 - text_stack_plan
+- headline_break_plan
 - mechanical_layout_preflight
 - z_index_plan
 - collision_exclusions
@@ -540,6 +541,16 @@ Every real Page Spec must include the following fields. If any field cannot be f
       },
       "fallback_if_too_tall": "split_title_lines | reduce_font_5_to_12_percent | move_cards | split_slide"
     },
+    "headline_break_plan": {
+      "required_for_display_title": true,
+      "text": "workflow 为什么比提示词重要",
+      "planned_lines": ["workflow", "为什么比提示词", "更重要"],
+      "script": "mixed_cjk_latin",
+      "orphan_line_check": "pass",
+      "min_last_line_visible_chars": 4,
+      "forbidden_breaks": ["single CJK character final line", "1-2 character CJK fragment", "browser-only auto wrap"],
+      "fallback_if_fail": "rewrite_title | reduce_font_5_to_12_percent | widen_title_zone | recompose | split_slide"
+    },
     "layout_box_budget": {
       "stage": { "w": 1920, "h": 1080 },
       "zones": [
@@ -631,10 +642,12 @@ Rules:
 - `title_zone`, `body_zone`, `card_zone`, `footer_zone`, and `nav_safe_zone` are content layers and must not overlap. DOM order must not be used to let a later card or panel cover earlier text.
 - Do not fix content collisions by raising `z-index`; revise the zone budget, reduce copy, lower title size by 5-12%, change layout, or split the slide.
 - CJK display text must use safe line-height and `letter-spacing: 0`; do not import tight Latin poster settings into Chinese headings.
+- Display titles with CJK or mixed CJK/Latin text must include `headline_break_plan`. A single Chinese character or 1-2 character fragment on the final title line is a failed plan.
+- Do not rely on browser auto-wrap, `text-wrap: balance`, `word-break: break-all`, or `overflow-wrap: anywhere` for large CJK/mixed titles. Planned semantic lines must be present in the Page Spec and reflected in the HTML.
 - Stroked, shadowed, glowing, or duplicate-offset titles must reserve extra visible height before cards, body text, dividers, captions, or navigation are placed.
 - Card capacity includes padding and internal label/badge height.
 - Navigation safe zone is reserved before footer, captions, and bottom cards are placed.
 - If any estimate or collision check fails, revise the Page Spec before HTML generation by recomposing, reducing copy, reducing title size by 5-12%, changing archetype, or splitting the slide.
 - Do not use `overflow: hidden` on text containers to mask capacity failure. It is allowed only for decorative crop containers.
-- The generated HTML must preserve enough zone information for the static guard: major content elements use `data-zone`, and the deck source or manifest keeps `layout_box_budget` for multi-element slides.
+- The generated HTML must preserve enough zone information for the static guard: major content elements use `data-zone`, and the deck source or manifest keeps `layout_box_budget` for multi-element slides. A slide with multiple text elements and no `data-zone` markers has not been checked.
 - After HTML generation, `scripts/ppt-layout-guard.js` must be able to verify the Page Spec assumptions from source when Node is available. Any P0 guard failure means the Page Spec was wrong or the HTML drifted from it; revise and rerun.

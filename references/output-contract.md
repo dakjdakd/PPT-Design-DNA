@@ -181,12 +181,27 @@ assets/images/07-proof-chart.png
 Mention only:
 
 - final HTML path
+- layout guard status and `layout-guard-report.json` path for HTML decks
 - active Design DNA summary
 - profile id/version only if saved or selected
 - adapter id/version and strategy, if used
 - optional PDF/PPTX paths
 - known limitations
 - mandatory save decision prompt when the active Design DNA is unsaved
+
+For HTML decks, final handoff is blocked until the source-level layout guard has actually run:
+
+```powershell
+node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json
+```
+
+Required final verification line:
+
+```text
+Layout guard: PASS - <output-dir>/layout-guard-report.json
+```
+
+Do not write the final handoff immediately after saying the guard will run. The report file must exist and reflect the current HTML. If Node is unavailable, state that the guard script could not be run and report the manual source-level checks instead. Do not substitute page-count checks, manifest checks, a local preview server, browser screenshots, or file existence checks for this report.
 
 After the user has reviewed the deck, ask in the user's language whether they want to save the current active Design DNA as a reusable profile when it is still unsaved. Do not save it preemptively.
 

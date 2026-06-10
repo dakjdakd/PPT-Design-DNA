@@ -311,6 +311,9 @@ Hard rules:
 - Chinese display headings need more line-height than Latin-only headings at the same size. Do not use very tight Latin poster settings for CJK.
 - CJK display headings use `letter-spacing: 0`; negative tracking is a blocking failure when it causes visual collision.
 - Do not use `line-height: .8`, `.85`, or `.9` for CJK display headings. A Latin poster setting must not be copied into Chinese title pages.
+- CJK or mixed Chinese/Latin display headings must not rely on browser auto-wrap. Plan the line breaks manually in the Page Spec.
+- A single Chinese character or 1-2 character CJK fragment on the final title line is a blocking failure unless the whole slide is an intentional one-character poster with no explanatory text below.
+- Do not use `word-break: break-all`, `overflow-wrap: anywhere`, or `text-wrap: balance` as the only protection for large display headings. Use planned lines, rewritten copy, wider zones, smaller type, or a different composition.
 - If a title uses thick stroke, black offset shadow, glow, duplicate colored layers, or cartoon/pop treatment, reserve extra vertical padding around the title block.
 - Subtitle and body text must start after the title's visual effect area, not after the raw CSS line box.
 - A divider line under a title needs at least 28-44px clearance from the title's visible bottom and 28-44px from the lead/body top.
@@ -390,6 +393,8 @@ Use these source-level corrections:
 | pale card inherits white text | assign explicit dark ink token to the card and its descendants |
 | title zone underestimated | increase title zone, reserve visual-effect padding, split title, or reduce title size by 5-12% |
 | title/subtitle/body squeezed | increase title line-height, add visual-effect padding, add compact safe gap, split title lines, or reduce title size by 5-10% |
+| CJK orphan title line | rewrite the title, manually rebalance lines, widen the title zone, reduce font size by 5-12%, or split the idea across slides |
+| missing guard-readable zones | add `data-zone` to major readable elements and include `layout_box_budget`; do not claim the deck passed layout guard from page-count checks |
 | title and cards compete for space | change composition, move cards below/aside with a safe gap, reduce card count, or split slide |
 | card zone collision | reduce card count, change archetype, recompose, or split slide |
 | decoration crosses readable content | lower opacity, move to decoration zone, crop off-stage, or remove |

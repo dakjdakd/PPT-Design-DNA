@@ -969,14 +969,17 @@ Core rules:
 - no decorative/media layers covering text
 - no overlap
 - no text below comfortable reading size
+- no CJK or mixed Chinese/Latin title orphan lines; display headlines require planned semantic line breaks, not browser-only auto-wrap
 - purposeful motion derived from DNA
 - no reference images used as slide assets by default
 - no reference-image subject redrawn as CSS/SVG/HTML/AI visuals, icons, mascots, diagrams, or decorative motifs
 - mechanical layout preflight passes before HTML is authored
 - layout box budget passes before HTML is authored
 - major content elements use `data-zone` or an equivalent class-to-zone mapping
+- every slide with multiple readable elements must expose guard-readable `data-zone` markers; page-count checks or manifest checks do not replace layout guard coverage
 - body/card/footer positions are derived from prior zone required heights instead of independent absolute `top` guesses
 - large multi-line English serif titles use safe line-height and descender padding
+- CJK/mixed display titles use `line-height >= 1.02`, `letter-spacing: 0`, and planned line breaks with no single-character or 1-2 character orphan final line
 - DOM order must not be used to let later cards/panels cover earlier text
 
 Use CSS, layout, typography, generated shapes, diagrams, and motion to express the extracted Design DNA. If image-like visuals are needed, create abstract style surrogates from the style; do not paste the user's reference images and do not redraw their identifiable subjects.
@@ -1000,6 +1003,14 @@ Before final handoff for an HTML deck, run the source-level layout guard when No
 node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json
 ```
 
+This command is a hard delivery lock. The assistant must have an actual command result before final handoff. A promise such as "I will run it now" is not enough, and final handoff must not happen until one of these is true:
+
+- the guard returned PASS and wrote `<output-dir>/layout-guard-report.json`
+- the guard returned P0 failures, the HTML/Page Specs were repaired, and the guard was rerun until PASS
+- Node is genuinely unavailable, in which case the same source-level checks are performed manually and the final response states that the script could not be run
+
+Do not substitute page-count checks, manifest validation, local server startup, browser preview, screenshot inspection, or "HTML can be opened" for this command. Those checks can be optional extras only after the source-level guard has run.
+
 ## Failure Recovery
 
 - If the layout guard returns P0, revise Page Specs and layout budgets first; do not hide the failure with blind CSS changes.
@@ -1008,8 +1019,14 @@ node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guar
 - If the user only says "做PPT" or gives a similarly vague request, enter saved-profile selection or no-image Design Discovery instead of asking the full PPT questionnaire.
 - If the user says "default", apply it only to the current visible gate. At Design DNA confirmation, default means accept the design and move to the requirement panel. At the requirement panel, default means balanced density, HTML-only output, and no reusable profile save.
 
-This guard is a static source check, not browser QA. It must not trigger Playwright lookup, installation, bundled runtime probing, screenshots, or dependency debugging. If the guard reports P0 issues such as `missing_layout_box_budget`, `title_zone_collision`, `body_card_collision`, `nav_safe_zone_collision`, `unsafe_display_line_height`, `unsafe_tight_line_height`, or `text_overflow_hidden`, revise the Page Spec or HTML and rerun the guard. Do not deliver the deck until it returns PASS. If Node is unavailable, apply the same checks manually from source and state that the script could not be run.
+This guard is a static source check, not browser QA. It must not trigger Playwright lookup, installation, bundled runtime probing, screenshots, or dependency debugging. If the guard reports P0 issues such as `missing_data_zones`, `missing_layout_box_budget`, `cjk_orphan_line`, `estimated_cjk_orphan_line`, `ugly_cjk_short_title_line`, `unsafe_cjk_display_line_height`, `unsafe_display_selector_line_height`, `negative_display_letter_spacing`, `unsafe_display_word_break`, `unsafe_text_block_gap`, `title_zone_collision`, `body_card_collision`, `nav_safe_zone_collision`, `unsafe_display_line_height`, `unsafe_tight_line_height`, or `text_overflow_hidden`, revise the Page Spec or HTML and rerun the guard. Do not deliver the deck until it returns PASS. If Node is unavailable, apply the same checks manually from source and state that the script could not be run.
 
 If the active Design DNA was not saved or selected from an existing profile, final handoff must include the save decision prompt in the user's language. Keep it short and action-oriented. The default is no save until the user explicitly chooses option A.
 
-End at the requested generated artifact. V3 does not include a post-generation browser QA stage in its default flow. Do not probe for Playwright, `playwright-core`, browser runtimes, bundled Node modules, or dependency fixes unless the user explicitly requests browser QA.
+Final handoff for an HTML deck must include a short verification line:
+
+```text
+Layout guard: PASS - <output-dir>/layout-guard-report.json
+```
+
+If the report cannot be produced because Node is unavailable, replace the PASS line with the manual source-check status and the reason Node could not run. End at the requested generated artifact. V3 does not include a post-generation browser QA stage in its default flow. Do not probe for Playwright, `playwright-core`, browser runtimes, bundled Node modules, or dependency fixes unless the user explicitly requests browser QA.

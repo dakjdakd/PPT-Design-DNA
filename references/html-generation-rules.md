@@ -477,7 +477,7 @@ Baseline rules at 1920x1080:
 | Text role | Font size range | Line-height | Minimum gap after block |
 |---|---:|---:|---:|
 | huge display title | 132-220px | 1.02-1.08 when multiline; 0.95+ only for single-line poster use | 44-72px |
-| CJK huge display title | 132-220px | 0.98-1.10 | 48-76px |
+| CJK huge display title | 132-220px | 1.04-1.12 | 48-76px |
 | outlined / shadowed title | 96-180px | 1.02-1.14 | 56-88px |
 | section title | 72-120px | 1.05-1.16 | 34-56px |
 | subtitle / lead | 34-54px | 1.22-1.38 | 24-40px |
@@ -491,13 +491,40 @@ Rules:
 - If the title contains descenders such as `g`, `y`, `p`, `q`, or `j`, add `descender_pad` / `glyph_pad_bottom` of `0.18em-0.28em` in the zone budget before placing the next block.
 - `line-height < 0.95` is allowed only for a single-line decorative/poster title with no body text, divider, card, or frame directly below it.
 - Multi-line body and card copy default to `line-height >= 1.28`; reading-first paragraphs should use a looser value.
-- Never use `line-height < 0.98` for Chinese display text.
+- Never use `line-height < 1.02` for Chinese or mixed Chinese/Latin display text; prefer `1.04-1.12` for large, heavy, stroked, shadowed, or bubble titles.
 - Never use `line-height < 1.02` when text has stroke, thick shadow, glow, duplicate offset layers, or cartoon/pop treatment.
 - If a display title has `-webkit-text-stroke`, `text-shadow`, `filter`, or layered duplicate text, add extra reserved block padding of 16-36px.
 - A title block and its subtitle/lead must have a real vertical gap. Do not position them by eye with absolute `top` values that ignore title height.
 - Tight editorial styles may be compact, but the visible glyphs must not touch. Use overlap only as an intentional typographic poster effect, and never between title and explanatory body text.
-- If a large title wraps to multiple lines, reduce font size slightly, split the title into designed lines, or increase the title zone height. Do not reduce line-height below the safe range.
+- If a large title wraps to multiple lines, reduce font size slightly, split the title into designed semantic lines, or increase the title zone height. Do not reduce line-height below the safe range.
 - For mixed Latin + CJK headings, prefer separate spans/lines with their own line-height when needed.
+
+## Headline Line-Break Aesthetics
+
+Line breaks are part of the design, not a browser accident. Before writing HTML, plan every display headline as intentional lines in the Page Spec.
+
+Hard rules:
+
+- Do not allow a single CJK character or 1-2 character CJK fragment to appear as the last title line.
+- Do not rely on `text-wrap: balance`, `word-break`, `overflow-wrap`, or auto width alone for large Chinese/mixed headlines.
+- Do not produce lines such as `要`, `的`, `计划`, `重要?`, or other tiny fragments unless the entire slide is an intentional one-character typographic poster with no body text below.
+- Do not split a sentence so the semantic emphasis becomes awkward, such as separating `为什么比` from `提示词重要` in a way that leaves one character alone.
+- For mixed headings, separate Latin display words from Chinese claim lines deliberately, for example `workflow` / `为什么比提示词` / `更重要`, or rewrite the claim to fit.
+- If a headline cannot break cleanly within the title zone, choose one correction: reduce font size by 5-12%, widen the title zone, rewrite the headline, use a two-column composition, or split the idea across slides.
+
+The Page Spec must record title line planning:
+
+```json
+{
+  "headline_break_plan": {
+    "text": "workflow 为什么比提示词重要",
+    "planned_lines": ["workflow", "为什么比提示词", "更重要"],
+    "orphan_line_check": "pass",
+    "min_last_line_visible_chars": 4,
+    "fallback_if_fail": "rewrite_or_reduce_font_or_recompose"
+  }
+}
+```
 
 ## CJK Display Type Rules
 
@@ -510,6 +537,7 @@ Rules:
 - Avoid all-caps transforms on mixed CJK/Latin text. Style Latin spans separately when needed.
 - For mixed headings such as `AI AGENT 竞争格局`, split Latin and CJK into separate lines or spans with their own sizing and line-height when the visual balance needs it.
 - If a CJK title wraps beyond two lines, first split lines deliberately or reduce font size by 5-12%. Do not compress line-height below the safe range.
+- If any planned CJK title line has only 1-2 visible characters, revise the copy or composition before generating HTML.
 - If a thick, black, offset, shadowed, glowing, stroked, or duplicated display effect is used, reserve extra title-zone height before placing subtitle, body, cards, or dividers.
 
 Bad pattern:
@@ -646,8 +674,13 @@ Before final handoff:
 - verify no overlap or overflow
 - verify `mechanical_layout_preflight` passed for slides with multiple major elements
 - verify `layout_box_budget` exists and matches the generated HTML zones for slides with multiple major elements
+- verify every multi-element slide exposes real `data-zone` markers so the static guard can inspect title/body/card/footer spacing
+- verify planned headline lines have no CJK orphan line or ugly 1-2 character final fragment
 - run the static layout guard when Node is available: `node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json`
 - treat any layout guard P0 as blocking; revise the HTML/Page Specs and rerun until the guard returns PASS
+- verify that `<output-dir>/layout-guard-report.json` exists and was produced by the current generated HTML before final handoff
+- include `Layout guard: PASS - <output-dir>/layout-guard-report.json` in the final handoff for HTML decks
+- do not treat page count, manifest JSON, class scans, local preview servers, browser screenshots, or "HTML opens" as a replacement for the source-level guard
 - verify no fake image placeholders or meaningless repeated side blocks
 - verify all text/surface pairs are readable
 - verify decorative/media layers do not cover text at rest

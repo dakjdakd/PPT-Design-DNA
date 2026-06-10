@@ -10,6 +10,10 @@ const REQUIRED_GAP = {
   titleToContent: 56,
   bodyToCard: 40,
   cardToNav: 88,
+  eyebrowToTitle: 18,
+  titleToSubtitle: 44,
+  titleToLead: 44,
+  textToText: 24,
 };
 
 function usage() {
@@ -72,13 +76,13 @@ function parseStyle(style = "") {
 
 function px(value) {
   if (!value) return null;
-  const match = String(value).match(/-?\d+(?:\.\d+)?/);
+  const match = String(value).match(/-?(?:\d+(?:\.\d+)?|\.\d+)/);
   return match ? Number(match[0]) : null;
 }
 
 function unitNumber(value) {
   if (!value) return null;
-  const match = String(value).match(/-?\d+(?:\.\d+)?/);
+  const match = String(value).match(/-?(?:\d+(?:\.\d+)?|\.\d+)/);
   return match ? Number(match[0]) : null;
 }
 
@@ -130,6 +134,14 @@ function hasCjk(text) {
   return /[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/.test(text);
 }
 
+function cjkCharCount(text) {
+  return ([...text].filter((ch) => /[\u3400-\u9fff\u3040-\u30ff\uac00-\ud7af]/.test(ch))).length;
+}
+
+function visibleCharCount(text) {
+  return [...String(text || "").replace(/\s+/g, "")].length;
+}
+
 function hasDescender(text) {
   return /[gypqj]/i.test(text);
 }
@@ -141,6 +153,17 @@ function estimateLines(text, width, fontSize, explicitBreaks) {
   const chars = [...cleaned].length;
   const perLine = Math.max(4, Math.floor(width / (fontSize * (cjk ? 0.95 : 0.54))));
   return Math.max(explicitBreaks || 1, Math.ceil(chars / perLine));
+}
+
+function estimatedLineRemainder(text, width, fontSize) {
+  const cleaned = String(text || "").replace(/\s+/g, "").trim();
+  if (!cleaned || !width || !fontSize) return null;
+  const chars = visibleCharCount(cleaned);
+  const cjk = hasCjk(cleaned);
+  const perLine = Math.max(4, Math.floor(width / (fontSize * (cjk ? 0.95 : 0.54))));
+  if (chars <= perLine) return { lines: 1, remainder: chars, perLine };
+  const remainder = chars % perLine || perLine;
+  return { lines: Math.ceil(chars / perLine), remainder, perLine };
 }
 
 function textMetricsFromInner(inner, zone) {
@@ -234,18 +257,64 @@ function horizontalOverlap(a, b) {
 
 function extractSlides(source) {
   const slides = [];
-  const re = /<section\b([^>]*)class=["'][^"']*\bslide\b[^"']*["'][^>]*>([\s\S]*?)<\/section>/gi;
+  const re = /<(section|article|div)\b([^>]*)class=["'][^"']*\bslide\b[^"']*["'][^>]*>([\s\S]*?)<\/\1>/gi;
   let match;
   while ((match = re.exec(source))) {
-    const attrs = match[1] || "";
+    const attrs = match[2] || "";
     const startAttrs = source.slice(match.index, source.indexOf(">", match.index) + 1);
     slides.push({
       page: getAttr(startAttrs, "data-page") || String(slides.length + 1).padStart(2, "0"),
-      html: match[2],
+      html: match[3],
       start: match.index,
     });
   }
   return slides;
+}
+
+function classHas(attrs, names) {
+  const className = getAttr(attrs, "class").toLowerCase();
+  return names.some((name) => new RegExp(`(^|\\s)${name}(\\s|$)`).test(className));
+}
+
+function extractTextElements(slide) {
+  const out = [];
+  const re = /<(h1|h2|h3|p|div)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
+  let match;
+  while ((match = re.exec(slide.html))) {
+    const tag = match[1].toLowerCase();
+    const attrs = match[2] || "";
+    const className = getAttr(attrs, "class");
+    const inner = match[3] || "";
+    const text = stripTags(inner);
+    if (!text) continue;
+    const style = mergeElementStyle(attrs);
+    const role = tag === "h1" || tag === "h2" || tag === "h3" || classHas(attrs, ["title", "headline", "mega", "huge"])
+      ? "title"
+      : classHas(attrs, ["subtitle", "lead", "copy"])
+        ? "lead"
+        : classHas(attrs, ["kicker", "eyebrow"])
+          ? "eyebrow"
+          : "text";
+    const fontSize = px(style["font-size"]) || (role === "title" ? 80 : role === "lead" ? 34 : 26);
+    let lineHeight = unitNumber(style["line-height"]);
+    if (!lineHeight) lineHeight = role === "title" ? 1.1 : 1.35;
+    if (lineHeight > 6) lineHeight = lineHeight / fontSize;
+    const explicitLines = inner
+      .split(/<br\s*\/?>/i)
+      .map(stripTags)
+      .map((line) => line.replace(/\s+/g, " ").trim())
+      .filter(Boolean);
+    out.push({ tag, className, role, text, inner, fontSize, lineHeight, explicitLines });
+  }
+  return out;
+}
+
+function lineHasCjkOrMixed(text) {
+  return hasCjk(text) || (/[a-z0-9]/i.test(text) && /[\u3400-\u9fff]/.test(text));
+}
+
+function looksLikeDisplayElement(el) {
+  return el.role === "title" || /\b(title|headline|mega|huge|display|poster|bubble-word)\b/i.test(el.className);
 }
 
 function extractZones(slide) {
@@ -284,17 +353,79 @@ const hasBudget = /layout_box_budget/.test(html);
 const slides = extractSlides(html);
 const allZones = [];
 
+if (!slides.length) {
+  issues.push(issue(
+    "P0",
+    "no_slides_detected",
+    "global",
+    "no slide elements detected; use <section|article class=\"slide\"> so the static layout guard can inspect the deck"
+  ));
+}
+
 for (const slide of slides) {
   const zones = extractZones(slide);
+  const textElements = extractTextElements(slide);
   allZones.push(...zones);
   const major = zones.filter((z) => /title|body|card|visual|footer|nav/.test(z.role));
-  if (major.length > 1 && !hasBudget) {
+  if (textElements.length > 1 && !zones.length) {
+    issues.push(issue(
+      "P0",
+      "missing_data_zones",
+      slide.page,
+      "slide has multiple text elements but no data-zone markers; source-level layout guard cannot verify text spacing or collisions"
+    ));
+  }
+
+  if ((major.length > 1 || textElements.length > 1) && !hasBudget) {
     issues.push(issue(
       "P0",
       "missing_layout_box_budget",
       slide.page,
-      "multi-element slide has data zones but no layout_box_budget source contract"
+      "multi-element slide has text/zones but no layout_box_budget source contract"
     ));
+  }
+
+  for (const el of textElements) {
+    if (!looksLikeDisplayElement(el)) continue;
+    if (lineHasCjkOrMixed(el.text) && el.lineHeight < 1.02) {
+      issues.push(issue(
+        "P0",
+        "unsafe_cjk_display_line_height",
+        slide.page,
+        `CJK/mixed display text line-height ${el.lineHeight} is below 1.02`,
+        { text: el.text.slice(0, 80), class_name: el.className, font_size: el.fontSize }
+      ));
+    }
+    for (const line of el.explicitLines) {
+      const chars = visibleCharCount(line);
+      const cjkChars = cjkCharCount(line);
+      if (lineHasCjkOrMixed(line) && chars > 0 && chars <= 2 && el.explicitLines.length > 1) {
+        issues.push(issue(
+          "P0",
+          "cjk_orphan_line",
+          slide.page,
+          `display title has an orphan short line "${line}"`,
+          {
+            text: el.text.slice(0, 100),
+            line,
+            fix: [
+              "rewrite or manually split the title into balanced semantic lines",
+              "reduce title font size by 5-12%",
+              "increase title width or switch to a different composition",
+            ],
+          }
+        ));
+      }
+      if (lineHasCjkOrMixed(line) && cjkChars > 0 && cjkChars <= 2 && chars <= 4 && el.explicitLines.length > 1) {
+        issues.push(issue(
+          "P0",
+          "ugly_cjk_short_title_line",
+          slide.page,
+          `display title line "${line}" is too short for a CJK/mixed headline`,
+          { text: el.text.slice(0, 100), line }
+        ));
+      }
+    }
   }
 
   const titles = zones.filter((z) => z.role === "title");
@@ -307,6 +438,27 @@ for (const slide of slides) {
         slide.page,
         `multi-line title line-height ${title.lineHeight} is below 1.06`,
         { zone: title.id, font_size: title.fontSize, estimated_lines: title.estimatedLines }
+      ));
+    }
+    const remainder = estimatedLineRemainder(title.text, title.w, title.fontSize);
+    if (lineHasCjkOrMixed(title.text) && remainder && remainder.lines > 1 && remainder.remainder <= 2) {
+      issues.push(issue(
+        "P0",
+        "estimated_cjk_orphan_line",
+        slide.page,
+        `title width/font estimate leaves ${remainder.remainder} visible character(s) on the final line`,
+        {
+          zone: title.id,
+          text: title.text.slice(0, 100),
+          estimated_lines: remainder.lines,
+          estimated_chars_per_line: remainder.perLine,
+          final_line_chars: remainder.remainder,
+          fix: [
+            "rewrite or manually split the title into balanced semantic lines",
+            "reduce title font size by 5-12%",
+            "increase title width or switch to a different composition",
+          ],
+        }
       ));
     }
     for (const other of content) {
@@ -330,6 +482,39 @@ for (const slide of slides) {
               "reduce title font size by 5-12%",
               "shorten title or split the slide",
             ],
+          }
+        ));
+      }
+    }
+  }
+
+  const textZones = zones
+    .filter((z) => /title|body|card|footer|eyebrow|lead|subtitle/.test(z.role))
+    .filter((z) => z.y != null && z.w != null);
+  for (let i = 0; i < textZones.length; i += 1) {
+    for (let j = i + 1; j < textZones.length; j += 1) {
+      const a = textZones[i];
+      const b = textZones[j];
+      if (!horizontalOverlap(a, b)) continue;
+      const upper = a.y <= b.y ? a : b;
+      const lower = a.y <= b.y ? b : a;
+      const gap = lower.y - upper.bottom;
+      if (gap < 0) continue;
+      let minGap = REQUIRED_GAP.textToText;
+      if (/eyebrow|kicker/.test(upper.role) && lower.role === "title") minGap = REQUIRED_GAP.eyebrowToTitle;
+      if (upper.role === "title" && /subtitle|lead|body/.test(lower.role)) minGap = REQUIRED_GAP.titleToSubtitle;
+      if ((upper.role === "body" || upper.role === "lead") && lower.role === "card") minGap = REQUIRED_GAP.bodyToCard;
+      if (gap < minGap) {
+        issues.push(issue(
+          "P0",
+          "unsafe_text_block_gap",
+          slide.page,
+          `${lower.role} starts ${Math.round(gap)}px after ${upper.role}; required visible gap is >= ${minGap}px`,
+          {
+            upper_zone: upper.id,
+            lower_zone: lower.id,
+            visible_gap: Math.round(gap),
+            required_gap: minGap,
           }
         ));
       }
@@ -390,6 +575,37 @@ for (const match of lineHeightHazards) {
 
 for (const rule of cssRules) {
   const selector = rule.selector.toLowerCase();
+  const isDisplaySelector = /title|headline|mega|huge|display|poster|bubble|zh|cjk/.test(selector);
+  const lineHeight = unitNumber(rule.style["line-height"]);
+  if (isDisplaySelector && lineHeight != null) {
+    const normalizedLineHeight = lineHeight > 6 && px(rule.style["font-size"]) ? lineHeight / px(rule.style["font-size"]) : lineHeight;
+    if (normalizedLineHeight < 1.02) {
+      issues.push(issue(
+        "P0",
+        "unsafe_display_selector_line_height",
+        "global",
+        `display selector "${rule.selector}" uses line-height ${normalizedLineHeight}; CJK/mixed display text requires >= 1.02`
+      ));
+    }
+  }
+  const letterSpacing = rule.style["letter-spacing"];
+  if (isDisplaySelector && letterSpacing && /^-\d/.test(letterSpacing)) {
+    issues.push(issue(
+      "P0",
+      "negative_display_letter_spacing",
+      "global",
+      `display selector "${rule.selector}" uses negative letter-spacing, which is unsafe for CJK/mixed headlines`
+    ));
+  }
+  const unsafeBreak = rule.style["word-break"] === "break-all" || rule.style["overflow-wrap"] === "anywhere";
+  if (isDisplaySelector && unsafeBreak) {
+    issues.push(issue(
+      "P0",
+      "unsafe_display_word_break",
+      "global",
+      `display selector "${rule.selector}" uses break-all/anywhere wrapping; plan headline lines manually instead`
+    ));
+  }
   const isStageCrop = /\b(html|body)\b|\.viewport|\.stage|\.slide\b/.test(selector);
   const isTextContainer = /\.content|\.card|\.lead|\.caption|\.label|title|body-note|chart-card/.test(selector);
   if (rule.style.overflow === "hidden" && isTextContainer && !isStageCrop) {
@@ -416,10 +632,17 @@ const report = {
   issues,
   checked_rules: [
     "layout_box_budget presence",
+    "slide and data-zone discoverability",
     "title required height and visual-effect padding",
     "title/body/card vertical clearance",
+    "text block visible gap",
+    "CJK/mixed headline orphan-line detection",
+    "estimated CJK/mixed final-line orphan detection",
     "navigation safe-zone clearance",
     "unsafe tight line-height",
+    "unsafe display selector line-height",
+    "negative display letter-spacing",
+    "unsafe display word-break",
     "text overflow hidden hazards",
   ],
 };

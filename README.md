@@ -12,6 +12,22 @@ PPT-Design-DNA 是一个 **Design DNA 驱动的 HTML PPT 生成 Skill**。它不
 
 ![PPT-Design-DNA hero preview](assets/readme/hero-preview.png)
 
+## 交付前质量门禁
+
+PPT-Design-DNA 现在把 HTML deck 交付前的源代码级检查作为硬门禁，而不是可选预览步骤。
+
+- 生成 PPT 前必须先走 Design DNA 参数面板，不能从参考图或一句主题直接跳到成品。
+- 确认 Design DNA 后，才进入主题、受众、页数、内容来源、叙事方式和图片策略选择。
+- 每页需要 `mechanical_layout_preflight`、`layout_box_budget` 和可被脚本读取的 `data-zone`，用于证明标题、正文、卡片、页脚、导航之间不会互相遮挡。
+- 中文/中英混排大标题必须提前规划换行，不能让浏览器自动断出单字孤行，例如把“要”“的”单独留到最后一行。
+- 交付 HTML deck 前必须运行：
+
+```powershell
+node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guard-report.json
+```
+
+最终交付必须包含 `Layout guard: PASS - <output-dir>/layout-guard-report.json`。页数统计、manifest 检查、本地预览服务、浏览器截图或 Playwright 都不能替代这个源代码级 guard。
+
 ## 🎨 效果预览
 
 阅读这组图的方式很简单：
@@ -206,9 +222,9 @@ PPT-Design-DNA/
 
 ## 📌 当前版本
 
-当前版本：**V3 - Design Adapter and Discovery**
+当前版本：**V3.1 - Trigger, Renovation, Preview UX, and Delivery Guard**
 
-V3 包含：
+V3.1 包含：
 
 - 从参考图提取 Design DNA。
 - 无参考图时进行 Design Discovery。
@@ -216,6 +232,7 @@ V3 包含：
 - Design Adapter 场景变体。
 - Image Asset Strategy，区分参考图和内容图。
 - 更强的视觉安全约束。
+- HTML deck 交付前的源代码级 layout guard 硬门禁。
 - HTML-first deck 生成，可选 PDF / PPTX 导出。
 
 ## 📜 License
