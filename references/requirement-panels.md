@@ -105,6 +105,7 @@ E. 先看 HTML，再决定导出
 
 ## Defaults
 
-- If the user says "default", choose a balanced reading/presentation density, preserve factual content, and output HTML only.
+- If the user says "default" while this requirement panel is visible, choose a balanced reading/presentation density, preserve factual content, and output HTML only.
+- "default" must not be applied before this panel is shown. It cannot be used to skip Design DNA extraction, the detailed Design DNA parameter panel, or user confirmation of the active DNA.
 - If the existing deck is very dense, prefer split slides over shrinking text.
 - If the existing deck has recognizable images, treat them as content images only when the user wants them preserved.

@@ -2,7 +2,7 @@ interface:
   display_name: "PPT Design DNA"
   short_description: "Make PPT/slides with reusable Design DNA and animated HTML decks"
   brand_color: "#111827"
-  default_prompt: "Use $PPT-Design-DNA to find or create a minimal reproducible Design DNA profile, reuse saved profiles/adapters when available, collect PPT requirements with numbered A/B/C/D option panels, adapt the style to my scenario, and generate a fixed-stage animated HTML deck under the hard output contract with no bulky default artifacts, fake image placeholders, unreadable text, or unsafe layering."
+  default_prompt: "Use $PPT-Design-DNA gate by gate. First find or create Design DNA and show a detailed Design DNA panel: source analysis, allowed/forbidden reference traits, all fixed parameters, 10+ semantic tags, five DNA layers, execution constraints, tokens, negative constraints, P0 risks, visual consequences, and choices. Stop for user confirmation. Only after the user accepts/tunes it, collect PPT requirements with numbered A/B/C/D option panels and stop again for choices. Generate the fixed-stage animated HTML deck only after requirements and image strategy are confirmed, with Design Contract, Blueprint, Page Specs, mechanical layout preflight, layout_box_budget, and source-level layout guard."
 
 policy:
   allow_implicit_invocation: true

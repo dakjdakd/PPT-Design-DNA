@@ -8,7 +8,7 @@ Before asking for new reference images, check whether the user is likely trying 
 
 ## Mandatory Order
 
-The order is strict:
+The order is strict. It is also an interaction contract: the assistant must stop at confirmation gates and wait for a later user reply before moving to the next gate.
 
 ```text
 0. Route the request:
@@ -41,6 +41,8 @@ The order is strict:
 Do not ask "topic / audience / page count / purpose / content source / PPTX export" before the active Design DNA candidate is accepted, unless the user is explicitly asking to inspect or classify an existing deck source. Those questions belong to PPT Requirement Discovery, not Design Intake.
 
 Do not ask how slide images should appear before step 5 unless the user explicitly says a provided image is slide content. Image intent is not Design Intake; it is a deck-planning choice after the active Design DNA exists.
+
+Do not create files, output folders, HTML, manifests, or generated decks before steps 5-8 have each been completed in order. A reference-image request must first produce analysis and a detailed Design DNA panel, not a finished default deck.
 
 ## No Default Browser QA Or Playwright Dependency
 
@@ -222,18 +224,101 @@ Then produce a fused direction:
 Cyber Minimal Editorial
 ```
 
+After reference-image extraction, show the Design DNA candidate and detailed parameter panel, then stop. Do not infer a deck topic such as "CHILL MODE", choose a page count, choose an audience, or generate a sample deck unless the user has already accepted the Design DNA and then answered the PPT requirement panel.
+
 For no-image discovery, describe the chosen direction and why it fits the user's stated style intent.
 
 ## Phase 3: Design DNA Panel
 
 Show:
 
+- source/extraction summary
+- reference subject firewall split
+- fused direction name and design thesis
 - fixed hard parameters
 - dynamic semantic tags
+- five required DNA layers
+- execution constraints
+- design tokens
+- negative constraints and P0 risks
 - plain-language style summary
 - risks and best-fit scenarios
 - visual consequences
 - confirmation choices
+
+Do not collapse this panel into a few sentences. The user must be able to inspect and tune the design system before any deck requirements are collected.
+
+Minimum detailed panel structure:
+
+```text
+Design DNA: <name>
+Persistence: unsaved_candidate
+
+1. Source extraction
+- Reference 1 contribution:
+  - Allowed style traits: ...
+  - Forbidden subject matter: ...
+  - Subject Firewall: ...
+- Reference 2 contribution: ...
+- Fusion strategy: blend / weighted / separated
+
+2. Fixed hard parameters (0-100)
+- Whitespace: ...
+- Information density: ...
+- Image/visual weight: ...
+- Title weight: ...
+- Chart weight: ...
+- Text density: ...
+- Formula friendliness: ...
+- Grid strictness: ...
+- Hierarchy strength: ...
+- Motion intensity: ...
+
+3. Dynamic semantic tags (0-100)
+- <tag>: ...
+
+4. Five DNA layers
+- Mood: ...
+- Composition: ...
+- Visual: ...
+- Content Strategy: ...
+- Presentation: ...
+
+5. Execution constraints
+- Canvas: 1920x1080, 16:9
+- Safe margins: ...
+- Density gates: ...
+- Typography minimums: ...
+- Mechanical layout preflight: required before HTML
+- layout_box_budget: required before HTML
+- Reference Subject Firewall: enabled
+- Motion rules: ...
+
+6. Design tokens
+- Background: ...
+- Ink/text: ...
+- Accent: ...
+- Surfaces: ...
+- Border/shadow: ...
+- Material/texture: ...
+- Type direction: ...
+
+7. Negative constraints / P0 risks
+- ...
+
+8. Visual consequences
+- ...
+
+9. Best for / risky for
+- Best for: ...
+- Risky for: ...
+
+Choose:
+A. Confirm this Design DNA and continue
+B. Tune parameters
+C. Regenerate Design DNA from the same source
+D. Save this Design DNA as a reusable Profile now
+```
 
 Example:
 
@@ -468,7 +553,7 @@ Rules:
 - Include `Other / custom` only when the answer space is naturally open, such as topic or purpose.
 - Let the user answer compactly, for example `1B 2D 3C`.
 - If the user picks `Other / custom`, then ask for the custom text.
-- Defaults are allowed only after the user says `default`.
+- Defaults are allowed only after the user says `default`, and only for this requirement panel. Do not use default requirements before this panel is shown.
 - Adapt option labels to the active Design DNA and likely scenario when helpful.
 - Do not say `你可以直接回复一行：主题：..., 6页, 给同学看, HTML` as the primary input method.
 - Do not show slash-separated fill-in prompts such as `受众：老师/同学/客户/团队/公开演讲？`.
@@ -921,7 +1006,7 @@ node scripts/ppt-layout-guard.js <output-html> --report <output-dir>/layout-guar
 - If Node is unavailable, manually perform the source-level layout checks and state that the script could not be run.
 - If PPTX export fails or is unavailable, keep HTML as the source artifact and provide PDF/manual export alternatives only when useful.
 - If the user only says "做PPT" or gives a similarly vague request, enter saved-profile selection or no-image Design Discovery instead of asking the full PPT questionnaire.
-- If the user says "default", choose a recommended discovery direction, balanced density, HTML-only output, and no reusable profile save.
+- If the user says "default", apply it only to the current visible gate. At Design DNA confirmation, default means accept the design and move to the requirement panel. At the requirement panel, default means balanced density, HTML-only output, and no reusable profile save.
 
 This guard is a static source check, not browser QA. It must not trigger Playwright lookup, installation, bundled runtime probing, screenshots, or dependency debugging. If the guard reports P0 issues such as `missing_layout_box_budget`, `title_zone_collision`, `body_card_collision`, `nav_safe_zone_collision`, `unsafe_display_line_height`, `unsafe_tight_line_height`, or `text_overflow_hidden`, revise the Page Spec or HTML and rerun the guard. Do not deliver the deck until it returns PASS. If Node is unavailable, apply the same checks manually from source and state that the script could not be run.
 

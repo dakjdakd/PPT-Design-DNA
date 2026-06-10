@@ -105,18 +105,24 @@ For existing deck enhancement or conversion, inspect the current deck/content so
 
 V3 has strict gates:
 
+Gate progression is user-turn based. A single assistant response must not cross from Design DNA extraction into PPT requirements, or from PPT requirements into deck generation, unless the user has already confirmed the previous gate in an earlier message. Internal assumptions, "default" handling, old memory, or being "in a hurry" do not count as gate confirmation before the gate is shown.
+
 1. **Design Source Gate**: ensure explicit reference images, a saved profile/adapter, or no-image Design Discovery choices exist.
    - Apply the Reference Subject Firewall at this gate. Record allowed style traits separately from forbidden subject matter before extracting Design DNA.
 2. **Design Preview Gate**: when the design source is no-image discovery, show three Design DNA preview cards or single-slide title previews before the parameter panel. When the source is reference imagery, show one style-transfer preview slide when feasible. Optional profile preview thumbnails are created only when the user asks or explicitly saves a reusable profile.
 3. **Design DNA Panel Gate**: after extraction/discovery and any needed visual preview, show the parameter panel and stop for user confirmation/tuning. Do not ask page count, audience, purpose, content source, or export before this gate.
-4. **Active DNA Gate**: after confirmation/tuning, use the result as an active Design DNA candidate for this deck. Do not save or update `design-profiles/` by default.
-5. **PPT Requirement Gate**: only after the user accepts/tunes the active Design DNA or selects a saved profile/adapter, ask topic, audience, page count, content source, purpose, density, narrative style, and output needs.
-6. **Image Asset Gate**: after PPT requirements, ask whether the deck needs content images, AI-generated images, replaceable image slots, no images, or mixed handling. Do not treat earlier reference images as content images.
+   - For reference-image extraction, the first substantive response must include the detailed image analysis, the Reference Subject Firewall split, a synthesized Design DNA candidate, and the detailed parameter panel. It must then stop.
+   - Do not generate a deck, create output folders, write HTML, write manifests, choose a default theme, choose page count, or infer audience before the user accepts or tunes this panel.
+4. **Active DNA Gate**: after confirmation/tuning in a later user message, use the result as an active Design DNA candidate for this deck. Do not save or update `design-profiles/` by default.
+5. **PPT Requirement Gate**: only after the user accepts/tunes the active Design DNA or selects a saved profile/adapter, ask topic, audience, page count, content source, purpose, density, narrative style, and output needs. Show the numbered option-first panel and stop again for the user's choices.
+6. **Image Asset Gate**: after PPT requirements are answered, ask or confirm whether the deck needs content images, AI-generated images, replaceable image slots, no images, or mixed handling. Do not treat earlier reference images as content images.
 7. **Adapter Gate**: after requirements are known, detect scenario conflicts and offer visual-first, dynamic-downgrade, or cell-division handling when needed.
 8. **Generation Handoff Gate**: after HTML/PPTX generation, deliver the requested artifact and report only concise paths, active Design DNA summary, saved profile/version only if applicable, and any known limitations.
    - If the active Design DNA is an unsaved candidate, the handoff must also ask whether the user wants to save it as a reusable Design Profile after reviewing the deck. Do not create `design-profiles/` until the user explicitly chooses to save.
 
-If the user replies "default" at the Design DNA Panel Gate, treat it as accepting the extracted/discovered DNA for this deck, then proceed to PPT Requirement Discovery. Do not save a new Design Profile unless the user explicitly chooses a save option.
+If the user replies "default" at the Design DNA Panel Gate, treat it as accepting the extracted/discovered DNA for this deck, then proceed to PPT Requirement Discovery in the next assistant response. Do not also generate the deck in that same response. Do not save a new Design Profile unless the user explicitly chooses a save option.
+
+If the user replies "default" at the PPT Requirement Gate, choose the recommended/default requirement options, confirm the choices briefly, then proceed through Image Asset Strategy, fit check, Design Contract, Blueprint, Page Specs, and generation. This is the earliest point where a default path may generate a deck.
 
 For profile-management requests, do not ask for reference images, deck topic, audience, or page count. Use [Profile Management](references/profile-management.md).
 
@@ -148,7 +154,17 @@ For profile-management requests, do not ask for reference images, deck topic, au
    - See [Design DNA Schema](references/design-dna-schema.md).
 
 3. **Design DNA Panel**
-   - Show fixed hard parameters and dynamic semantic tags.
+   - Show the detailed Design DNA panel, not a short style summary.
+   - The minimum visible panel must include:
+     - source/extraction summary with allowed style traits and forbidden subject matter for each reference image
+     - fused direction name and one-line design thesis
+     - all fixed hard parameters: whitespace, information_density, image_weight, title_weight, chart_weight, text_density, formula_friendliness, grid_strictness, hierarchy_strength, motion_intensity
+     - 10 or more dynamic semantic tags scored 0-100
+     - the five required DNA layers: Mood, Composition, Visual, Content Strategy, Presentation
+     - execution constraints: canvas, safe margins, density gates, typography minimums, reference subject firewall, mechanical layout preflight, layout_box_budget, motion rules
+     - design tokens summary: background, text, accents, surface, border/shadow, material/texture, type direction
+     - negative constraints and P0 failure risks
+     - visual consequences, best-fit scenarios, risky scenarios, and confirmation choices
    - Explain major visual consequences.
    - Include best-fit and risky scenarios.
    - Stop for user confirmation/tuning.
@@ -175,6 +191,7 @@ For profile-management requests, do not ask for reference images, deck topic, au
    - Do not present blank fill-in fields such as `topic: ____`; provide A/B/C/D options plus an "Other/custom" escape hatch.
    - After the active Design DNA is accepted, the next assistant response must be a guided choice panel, not a free-form intake form.
    - Never say "直接回复一行：主题..., 6页..., 给谁看..." as the primary requirement collection method. Compact answers such as `1A 2C 3B` are allowed only after showing options.
+   - Stop after showing the requirement panel unless the user has already answered it in the current or previous message.
 
 7. **Image Asset Strategy**
    - Ask how the deck should use content images only after Design DNA is accepted and PPT requirements are known.
@@ -349,7 +366,7 @@ Use these defaults when generation or export hits a blocker:
 - **Node unavailable**: perform the same source-level checks manually from HTML/CSS/Page Specs, state that the layout guard could not be run, and keep the deck in HTML.
 - **PPTX export unavailable**: keep HTML as the source artifact, offer PDF export or manual PowerPoint recreation notes only if useful, and do not claim PPTX was produced.
 - **Only a vague request such as "做PPT"**: enter Design Discovery or saved-profile selection first; do not start a long PPT questionnaire.
-- **User says "default" or is in a hurry**: choose a recommended no-image Design Discovery direction, balanced density, HTML-only output, and no reusable profile save unless explicitly requested.
+- **User says "default" or is in a hurry**: apply the default only to the current visible gate. At Design Discovery/Design DNA gates, this means selecting or accepting the design direction and then stopping at the next gate. At PPT Requirement Gate, this means choosing balanced density, HTML-only output, and no reusable profile save unless explicitly requested.
 - **Existing deck extraction fails**: preserve the original file untouched, summarize what could not be read, and ask for a different source representation only if screenshots, pasted outline, or extracted text cannot be discovered locally.
 
 ## Non-Negotiables
@@ -357,6 +374,9 @@ Use these defaults when generation or export hits a blocker:
 - Do not reduce style extraction to color palette extraction.
 - Do not skip the Design DNA layer.
 - Do not skip the Design DNA parameter panel.
+- Do not compress the Design DNA panel into a few sentences; it must expose detailed parameters, five-layer DNA, execution constraints, tokens, negative constraints, and P0 risks.
+- Do not cross interaction gates in a single response; each gate that requires user confirmation must stop and wait.
+- Do not treat "I will use defaults" as permission to invent topic, page count, audience, or output before the PPT Requirement Gate is shown and answered.
 - Do not ask PPT task questions before the user accepts or tunes Design DNA.
 - Do not overwrite a saved profile version; create a new version and Design Diff.
 - Do not save new Design Profiles by default. Promote an active Design DNA candidate into `design-profiles/` only after explicit user approval.
