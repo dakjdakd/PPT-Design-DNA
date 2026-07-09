@@ -1,0 +1,834 @@
+/* ==================== DESIGN DNA - HTML PPT STYLESHEET ==================== */
+/* Based on extracted Design DNA from reference images */
+/* Professional Minimalist + Celebratory Festive */
+
+/* ==================== CSS VARIABLES ==================== */
+:root {
+    /* Colors - Design DNA */
+    --color-primary-red: #C41E3A;
+    --color-accent-green: #7FD356;
+    --color-dark: #1A1A1A;
+    --color-white: #FFFFFF;
+    --color-gray: #808080;
+    --color-light-gray: #F5F5F5;
+    --color-silver: #C0C0C0;
+    
+    /* Typography */
+    --font-family: 'Inter', 'Helvetica Neue', 'Arial', sans-serif;
+    --font-size-h1: clamp(2.5rem, 8vw, 3.5rem);
+    --font-size-h2: clamp(1.75rem, 5vw, 2.5rem);
+    --font-size-h3: clamp(1.25rem, 3.5vw, 1.5rem);
+    --font-size-body: clamp(0.95rem, 2vw, 1.125rem);
+    --font-weight-regular: 400;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+    --font-weight-black: 900;
+    
+    /* Spacing */
+    --space-xs: 0.5rem;
+    --space-sm: 1rem;
+    --space-md: 1.5rem;
+    --space-lg: 2rem;
+    --space-xl: 3rem;
+    --space-2xl: 4rem;
+    
+    /* Animations */
+    --transition-fast: 0.2s ease-in-out;
+    --transition-normal: 0.3s ease-in-out;
+    --transition-slow: 0.5s ease-in-out;
+}
+
+/* ==================== RESET & BASE ==================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    font-family: var(--font-family);
+    background: var(--color-dark);
+    overflow: hidden;
+}
+
+.ppt-container {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    perspective: 1000px;
+}
+
+/* ==================== SLIDE CONTAINER ==================== */
+.slide {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transform: scale(0.95) translateZ(0);
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.slide.active {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+    pointer-events: auto;
+    z-index: 10;
+}
+
+.slide.prev {
+    transform: translateX(-100vw) scale(0.95);
+}
+
+.slide.next {
+    transform: translateX(100vw) scale(0.95);
+}
+
+/* ==================== PROFESSIONAL THEME ==================== */
+.slide--professional {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%);
+    color: var(--color-dark);
+    position: relative;
+}
+
+.geometric-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.08;
+    z-index: 1;
+    pointer-events: none;
+    
+    /* Geometric grid pattern */
+    background-image: 
+        linear-gradient(45deg, transparent 48%, var(--color-primary-red) 48%, 
+                       var(--color-primary-red) 52%, transparent 52%),
+        linear-gradient(-45deg, transparent 48%, var(--color-primary-red) 48%, 
+                       var(--color-primary-red) 52%, transparent 52%);
+    background-size: 40px 40px;
+    background-position: 0 0, 20px 20px;
+}
+
+/* ==================== CELEBRATORY THEME ==================== */
+.slide--celebratory {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%);
+    color: var(--color-dark);
+    position: relative;
+}
+
+.celebratory-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.05;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(circle at 20% 30%, var(--color-accent-green) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, var(--color-silver) 0%, transparent 60%);
+}
+
+.floating-decoration {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.deco-1 {
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle at 30% 30%, var(--color-accent-green), transparent);
+    top: 5%;
+    right: 5%;
+    animation: float 4s ease-in-out infinite;
+}
+
+.deco-2 {
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle at 30% 30%, var(--color-silver), transparent);
+    bottom: 10%;
+    left: 8%;
+    animation: float 5s ease-in-out infinite 0.5s;
+}
+
+.deco-3 {
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle at 30% 30%, var(--color-accent-green), transparent);
+    top: 50%;
+    right: 10%;
+    animation: float 3.5s ease-in-out infinite 1s;
+}
+
+/* ==================== TRANSITION THEME ==================== */
+.slide--transition {
+    background: var(--color-white);
+    overflow: hidden;
+    padding: 0;
+}
+
+.transition-split {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+.split-professional, .split-celebratory {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.split-professional {
+    background: linear-gradient(135deg, #FFFFFF 0%, #F5F5F5 100%);
+}
+
+.split-professional > .geometric-bg {
+    opacity: 0.1;
+}
+
+.split-celebratory {
+    background: linear-gradient(135deg, #F5F5F5 0%, #FFFFFF 100%);
+}
+
+.split-celebratory > .celebratory-bg {
+    opacity: 0.1;
+}
+
+.split-content {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: var(--space-2xl);
+}
+
+.split-content h2 {
+    color: var(--color-dark);
+    margin-bottom: var(--space-md);
+    font-size: 1.75rem;
+}
+
+.split-content p {
+    color: var(--color-gray);
+    font-size: 1.1rem;
+}
+
+/* ==================== SLIDE CONTENT ==================== */
+.slide__content {
+    position: relative;
+    z-index: 10;
+    max-width: 90%;
+    max-height: 80vh;
+    text-align: center;
+    padding: var(--space-2xl);
+    animation-duration: 0.6s;
+    animation-timing-function: ease-out;
+    animation-fill-mode: both;
+}
+
+.slide__content--left {
+    text-align: left;
+    max-width: 70%;
+    margin-left: var(--space-2xl);
+}
+
+/* ==================== TYPOGRAPHY ==================== */
+.heading {
+    font-family: var(--font-family);
+    font-weight: var(--font-weight-bold);
+    line-height: 1.2;
+    color: var(--color-dark);
+    margin: 0;
+    letter-spacing: -0.02em;
+}
+
+.heading--lg {
+    font-size: var(--font-size-h1);
+    font-weight: var(--font-weight-black);
+    margin-bottom: var(--space-md);
+}
+
+.heading--md {
+    font-size: var(--font-size-h2);
+    font-weight: var(--font-weight-bold);
+    margin-bottom: var(--space-md);
+}
+
+.heading--sm {
+    font-size: var(--font-size-h3);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-gray);
+    margin-bottom: var(--space-lg);
+}
+
+.subheading {
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-gray);
+    margin-bottom: var(--space-md);
+    letter-spacing: 0.05em;
+}
+
+.body-text {
+    font-size: var(--font-size-body);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-dark);
+    line-height: 1.6;
+    margin-bottom: var(--space-md);
+}
+
+/* ==================== ACCENT ELEMENTS ==================== */
+.accent-bar {
+    width: 60px;
+    height: 4px;
+    background: var(--color-primary-red);
+    margin: var(--space-lg) auto;
+}
+
+.accent-bar-left {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 80px;
+    background: var(--color-primary-red);
+}
+
+.accent-bar-center {
+    width: 60px;
+    height: 4px;
+    background: var(--color-primary-red);
+    margin: 0 auto var(--space-lg);
+}
+
+/* ==================== AGENDA ITEMS ==================== */
+.agenda-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+    margin-top: var(--space-xl);
+}
+
+.agenda-item {
+    display: flex;
+    gap: var(--space-lg);
+    align-items: flex-start;
+    padding: var(--space-lg);
+    background: rgba(255, 255, 255, 0.6);
+    border-left: 4px solid var(--color-primary-red);
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.agenda-number {
+    font-size: 1.5rem;
+    font-weight: var(--font-weight-black);
+    color: var(--color-primary-red);
+    flex-shrink: 0;
+}
+
+.agenda-item h3 {
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-dark);
+    margin-bottom: 0.25rem;
+}
+
+.agenda-item p {
+    font-size: 0.95rem;
+    color: var(--color-gray);
+}
+
+/* ==================== FEATURE GRID ==================== */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-2xl);
+    padding: 0 var(--space-lg);
+}
+
+.feature-card {
+    padding: var(--space-xl);
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border: 2px solid var(--color-primary-red);
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+    cursor: pointer;
+}
+
+.feature-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(196, 30, 58, 0.15);
+}
+
+.feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--space-md);
+}
+
+.feature-card h3 {
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-dark);
+    margin-bottom: 0.5rem;
+}
+
+.feature-card p {
+    font-size: 0.9rem;
+    color: var(--color-gray);
+}
+
+/* ==================== STATS GRID ==================== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-2xl);
+    padding: 0 var(--space-lg);
+}
+
+.stat-box {
+    padding: var(--space-xl);
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border-top: 4px solid var(--color-primary-red);
+    text-align: center;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: var(--font-weight-black);
+    color: var(--color-primary-red);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: var(--color-gray);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* ==================== TESTIMONIAL CAROUSEL ==================== */
+.testimonial-carousel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-2xl);
+    padding: 0 var(--space-lg);
+}
+
+.testimonial-card {
+    padding: var(--space-xl);
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    border-left: 4px solid var(--color-accent-green);
+    transition: transform var(--transition-normal);
+}
+
+.testimonial-card:hover {
+    transform: translateY(-5px);
+}
+
+.testimonial-text {
+    font-size: 1rem;
+    font-style: italic;
+    color: var(--color-dark);
+    margin-bottom: var(--space-md);
+    line-height: 1.6;
+}
+
+.testimonial-author {
+    font-size: 0.9rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-accent-green);
+}
+
+/* ==================== ACHIEVEMENT GRID ==================== */
+.achievement-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-2xl);
+    padding: 0 var(--space-lg);
+}
+
+.achievement-card {
+    padding: var(--space-xl);
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
+    border: 2px solid var(--color-accent-green);
+    text-align: center;
+    transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.achievement-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 15px 40px rgba(127, 211, 86, 0.2);
+}
+
+.achievement-badge {
+    font-size: 3rem;
+    margin-bottom: var(--space-md);
+    animation: bounce 2s ease-in-out infinite;
+}
+
+.achievement-card h3 {
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-dark);
+    margin-bottom: 0.5rem;
+}
+
+.achievement-card p {
+    font-size: 0.9rem;
+    color: var(--color-accent-green);
+    font-weight: var(--font-weight-semibold);
+}
+
+/* ==================== PARTNER GRID ==================== */
+.partner-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-2xl);
+    padding: 0 var(--space-lg);
+}
+
+.partner-logo {
+    padding: var(--space-lg);
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    border: 2px solid var(--color-accent-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 120px;
+    transition: transform var(--transition-normal);
+}
+
+.partner-logo:hover {
+    transform: translateY(-5px);
+}
+
+.logo-placeholder {
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-accent-green);
+    text-align: center;
+}
+
+/* ==================== CTA BUTTONS ==================== */
+.cta-buttons {
+    display: flex;
+    gap: var(--space-lg);
+    justify-content: center;
+    margin-top: var(--space-2xl);
+    flex-wrap: wrap;
+}
+
+.cta-btn {
+    padding: var(--space-md) var(--space-2xl);
+    font-size: 1.1rem;
+    font-weight: var(--font-weight-bold);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    font-family: var(--font-family);
+}
+
+.cta-btn--primary {
+    background: var(--color-primary-red);
+    color: var(--color-white);
+}
+
+.cta-btn--primary:hover {
+    background: darken(#C41E3A, 10%);
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(196, 30, 58, 0.3);
+}
+
+.cta-btn--secondary {
+    background: var(--color-white);
+    color: var(--color-accent-green);
+    border: 2px solid var(--color-accent-green);
+}
+
+.cta-btn--secondary:hover {
+    background: var(--color-accent-green);
+    color: var(--color-white);
+    transform: scale(1.05);
+}
+
+/* ==================== CONTACT INFO ==================== */
+.contact-info {
+    font-size: 0.95rem;
+    color: var(--color-gray);
+    letter-spacing: 0.05em;
+}
+
+/* ==================== ANIMATIONS ==================== */
+@keyframes slide-in-left {
+    from {
+        opacity: 0;
+        transform: translateX(-40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes slide-in-right {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0) rotate(0deg);
+    }
+    50% {
+        transform: translateY(-20px) rotate(5deg);
+    }
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+@keyframes celebration-pop {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-slide-in-left {
+    animation: slide-in-left 0.6s ease-out forwards;
+}
+
+.animate-slide-in-right {
+    animation: slide-in-right 0.6s ease-out forwards;
+}
+
+.animate-fade-in {
+    animation: fade-in 0.6s ease-out forwards;
+}
+
+.celebration-text {
+    animation: celebration-pop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* ==================== FINAL SLIDE ENHANCEMENTS ==================== */
+.final-slide {
+    position: relative;
+}
+
+.confetti {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+    background-image: 
+        conic-gradient(var(--color-primary-red) 0deg 90deg, transparent 90deg 180deg),
+        conic-gradient(var(--color-accent-green) 0deg 90deg, transparent 90deg 180deg);
+    background-size: 100px 100px, 150px 150px;
+    background-position: 0 0, 50px 50px;
+    background-attachment: fixed;
+    opacity: 0.05;
+}
+
+/* ==================== SLIDE INDICATOR ==================== */
+.slide-indicator {
+    position: absolute;
+    top: var(--space-lg);
+    right: var(--space-lg);
+    font-size: 2rem;
+    font-weight: var(--font-weight-black);
+    color: var(--color-primary-red);
+    opacity: 0.3;
+    z-index: 5;
+}
+
+.slide--celebratory .slide-indicator {
+    color: var(--color-accent-green);
+}
+
+/* ==================== CONTROLS ==================== */
+.controls {
+    position: fixed;
+    bottom: var(--space-lg);
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: var(--space-lg);
+    background: rgba(26, 26, 26, 0.9);
+    padding: var(--space-md) var(--space-lg);
+    border-radius: 50px;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.control-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: var(--color-primary-red);
+    color: var(--color-white);
+    font-size: 1.2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.control-btn:hover {
+    background: var(--color-accent-green);
+    transform: scale(1.1);
+}
+
+.control-btn:active {
+    transform: scale(0.95);
+}
+
+.slide-counter {
+    color: var(--color-white);
+    font-weight: var(--font-weight-bold);
+    font-size: 0.95rem;
+    min-width: 50px;
+    text-align: center;
+}
+
+/* ==================== FULLSCREEN BUTTON ==================== */
+.fullscreen-btn {
+    position: fixed;
+    top: var(--space-lg);
+    right: var(--space-lg);
+    width: 45px;
+    height: 45px;
+    border: none;
+    background: var(--color-primary-red);
+    color: var(--color-white);
+    font-size: 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    z-index: 100;
+}
+
+.fullscreen-btn:hover {
+    background: var(--color-accent-green);
+    transform: scale(1.1);
+}
+
+/* ==================== HINT ==================== */
+.hint {
+    position: fixed;
+    bottom: var(--space-lg);
+    right: var(--space-lg);
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.6);
+    text-align: right;
+    pointer-events: none;
+}
+
+/* ==================== RESPONSIVE ==================== */
+@media (max-width: 768px) {
+    :root {
+        --font-size-h1: 2rem;
+        --font-size-h2: 1.5rem;
+        --space-2xl: 2rem;
+    }
+    
+    .slide__content {
+        padding: var(--space-lg);
+    }
+    
+    .agenda-items {
+        gap: var(--space-md);
+    }
+    
+    .feature-grid, .stats-grid, .testimonial-carousel,
+    .achievement-grid, .partner-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-md);
+    }
+    
+    .cta-buttons {
+        flex-direction: column;
+    }
+    
+    .cta-btn {
+        width: 100%;
+    }
+    
+    .split-professional, .split-celebratory {
+        flex-direction: column;
+    }
+    
+    .hint {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .slide,
+    .slide__content,
+    .feature-card,
+    .achievement-card,
+    .floating-decoration {
+        animation: none !important;
+        transition: none !important;
+    }
+}
