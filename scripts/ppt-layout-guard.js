@@ -278,21 +278,44 @@ function classHas(attrs, names) {
 
 function extractTextElements(slide) {
   const out = [];
-  const re = /<(h1|h2|h3|p|div)\b([^>]*)>([\s\S]*?)<\/\1>/gi;
+  // Track text blocks independently so a container cannot consume its children.
+  // Ignore non-content markup before scanning, including tag-shaped examples.
+  const source = slide.html.replace(/<!--[\s\S]*?-->|<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, "");
+  const re = /<\/?([a-z][a-z0-9-]*)\b((?:[^<>"']|"[^"]*"|'[^']*')*)>/gi;
+  const stack = [];
+  const blocks = [];
   let match;
-  while ((match = re.exec(slide.html))) {
+  while ((match = re.exec(source))) {
     const tag = match[1].toLowerCase();
-    const attrs = match[2] || "";
-    const className = getAttr(attrs, "class");
-    const inner = match[3] || "";
+    if (!/^(h1|h2|h3|p|div)$/.test(tag)) continue;
+    if (!match[0].startsWith("</")) {
+      const parent = stack[stack.length - 1];
+      if (parent) parent.parts.push(source.slice(parent.cursor, match.index));
+      stack.push({ tag, attrs: match[2], start: match.index, cursor: re.lastIndex, parts: [], ancestors: stack.map((block) => block.attrs) });
+      continue;
+    }
+    const block = stack[stack.length - 1];
+    if (!block || block.tag !== tag) continue;
+    stack.pop();
+    block.parts.push(source.slice(block.cursor, match.index));
+    const parent = stack[stack.length - 1];
+    if (parent) parent.cursor = re.lastIndex;
+    // Only count a wrapper when it has its own text, not its children's text.
+    block.inner = block.parts.join(" ");
+    if (stripTags(block.inner)) blocks.push(block);
+  }
+  for (const block of blocks.sort((a, b) => a.start - b.start)) {
+    const { tag, attrs, inner, ancestors } = block;
+    const contexts = [attrs, ...ancestors.slice().reverse()];
+    const className = contexts.map((context) => getAttr(context, "class")).filter(Boolean).join(" ");
     const text = stripTags(inner);
     if (!text) continue;
-    const style = mergeElementStyle(attrs);
-    const role = tag === "h1" || tag === "h2" || tag === "h3" || classHas(attrs, ["title", "headline", "mega", "huge"])
+    const style = Object.assign({}, ...ancestors.map(mergeElementStyle), mergeElementStyle(attrs));
+    const role = tag === "h1" || tag === "h2" || tag === "h3" || contexts.some((context) => classHas(context, ["title", "headline", "mega", "huge"]))
       ? "title"
-      : classHas(attrs, ["subtitle", "lead", "copy"])
+      : contexts.some((context) => classHas(context, ["subtitle", "lead", "copy"]))
         ? "lead"
-        : classHas(attrs, ["kicker", "eyebrow"])
+        : contexts.some((context) => classHas(context, ["kicker", "eyebrow"]))
           ? "eyebrow"
           : "text";
     const fontSize = px(style["font-size"]) || (role === "title" ? 80 : role === "lead" ? 34 : 26);
