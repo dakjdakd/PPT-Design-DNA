@@ -4,7 +4,25 @@
 
 These case studies trace a visual direction from reference imagery to generated presentation pages. The references supply palette, texture, type character, and composition cues; the slides apply those cues to their own content.
 
-The comparisons retain the original slide content in Chinese. English and Simplified Chinese versions of the overview graphics are available. Complete runnable decks and saved Design Profiles are not included in these cases.
+Editorial Agents features English slide content. The earlier Pop Comic and Blue Sketch cases retain their original Chinese slide content, with comparison graphics available in English and Simplified Chinese. Complete runnable decks and saved Design Profiles are not included in these cases.
+
+## Editorial Agents
+
+Two style references are blended into a single Design DNA for *From Chatbots to Agents*: a blue coffee illustration with expressive serif lettering, and a vivid character illustration with blue linework and yellow contrast.
+
+The generated pages share cobalt-blue serif headlines, warm neutral surfaces, structured outlines, and yellow emphasis. Slide 02 compares a chatbot with an agent using tools; slide 04 explains the observe–decide–act–check loop. Both pages come from the same visual system.
+
+![Two references blended into one Design DNA and applied across two English presentation pages](media/editorial-agents/comparison-en.png)
+
+| Asset | View |
+| --- | --- |
+| Coffee illustration reference | [Reference 01](media/editorial-agents/reference-01.png) |
+| Character illustration reference | [Reference 02](media/editorial-agents/reference-02.png) |
+| Chatbot / agent comparison | [Slide 02](media/editorial-agents/slide-02.png) |
+| Agent workflow loop | [Slide 04](media/editorial-agents/slide-04.png) |
+| English comparison | [Open image](media/editorial-agents/comparison-en.png) |
+
+The composite crops away reference-viewer controls and presentation navigation to focus on the design. The links above preserve the four original screenshots. The Design DNA labels summarize visible traits for this case study; they are not an exported profile. Slide filenames retain the page numbers shown in the source presentation.
 
 ## Pop Comic Consulting
 

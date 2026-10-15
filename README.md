@@ -13,7 +13,7 @@
   <a href="CONTRIBUTING.md">Contributing</a>
 </p>
 
-![A reference image and a presentation generated from its visual language](docs/media/overview-en.png)
+![Two style references blended into Design DNA and applied to two English presentation pages](docs/media/overview-en.png)
 
 **PPT-Design-DNA** is an AI skill that turns reference imagery or a design brief into a visual system for HTML presentations. It captures composition, typography, color, texture, density, and motion as **Design DNA**, then applies those rules to the deck's content and audience.
 
@@ -105,19 +105,15 @@ The workflow includes source-level layout checks. These check declared geometry 
 
 ## Showcase
 
-### Pop Comic Consulting
+### Editorial Agents
 
-Acid yellow, bold outlines, and halftone texture become a visual system for an AI Agent strategy report.
+Two references—a blue coffee illustration and a vivid character illustration—blend into one visual system for an English presentation, *From Chatbots to Agents*.
 
-![Pop Comic reference and generated report slides](docs/media/pop-comic/comparison-en.png)
+The result carries cobalt-blue serif headlines, warm neutral backgrounds, blue linework, and yellow emphasis across both a comparison page and an agent-loop diagram.
 
-### Blue Sketch × Bubble Type
+![Two references flow into a shared Design DNA, then into English slides about chatbots and agent workflows](docs/media/editorial-agents/comparison-en.png)
 
-Sketch lines, blue accents, green bubble forms, and grain blend into a research presentation built from multiple references.
-
-![Multiple visual references adapted into a research presentation](docs/media/blue-sketch-bubble/comparison-en.png)
-
-Browse the [case studies](docs/showcase.md) for individual references and full-size slide images. The illustrated decks contain Chinese slide content; the English overview images describe the design process.
+The composite uses content-area crops of the original screenshots. Browse the [case study](docs/showcase.md#editorial-agents) for both references and the original screenshots of slides 02 and 04. Earlier visual cases remain available in the [showcase archive](docs/showcase.md#pop-comic-consulting).
 
 ## Documentation
 
