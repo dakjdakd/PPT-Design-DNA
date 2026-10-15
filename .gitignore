@@ -1,0 +1,17 @@
+# Operating system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local editor settings
+.idea/
+.vscode/
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# User-generated artifacts belong in a separate working project
+/outputs/
+/design-profiles/
